@@ -1,844 +1,1252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vellore Finserv Service - RTA & Financial Management</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vellore Finserv Service - RTA Follow-up Portal</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0284c7',
+              600: '#026aa7',
+              800: '#075985',
+              900: '#0f172a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- SheetJS (xlsx export) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #reportPrintArea, #reportPrintArea * {
+        visibility: visible;
+      }
+      #reportPrintArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+    .draggable-row {
+      cursor: grab;
+    }
+    .draggable-row:active {
+      cursor: grabbing;
+    }
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
 
-    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo & Title -->
-                <div class="flex items-center space-x-3">
-                    <div class="bg-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
-                        
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg leading-tight tracking-wide">Vellore Finserv Service</h1>
-                        <p class="text-xs text-blue-400 font-medium">RTA & Financial Services Portal</p>
-                    </div>
-                </div>
-
-                <!-- Navigation Links -->
-                <nav class="hidden md:flex space-x-1">
-                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white transition">
-                        <i class="fa-solid font-normal fa-chart-pie mr-1.5"></i> Dashboard
-                    </button>
-                    <button onclick="switchTab('cases')" id="nav-cases" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                        <i class="fa-solid fa-folder-open mr-1.5"></i> Cases & Trackers
-                    </button>
-                    <button onclick="switchTab('followups')" id="nav-followups" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                        <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Follow-Up Queue
-                    </button>
-                    <button onclick="switchTab('investors')" id="nav-investors" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
-                        <i class="fa-solid fa-users mr-1.5"></i> Investor Directory
-                    </button>
-                </nav>
-
-                <!-- Action Button -->
-                <div class="flex items-center space-x-3">
-                    <button onclick="openNewCaseModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow flex items-center transition">
-                        <i class="fa-solid fa-plus mr-1.5"></i> New Request
-                    </button>
-                </div>
-            </div>
+  <!-- ==================== LOGIN PAGE ==================== -->
+  <div id="loginPage" class="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+    <!-- Left Navy Hero Panel -->
+    <div class="hidden lg:flex flex-col justify-between bg-slate-900 p-12 text-white relative overflow-hidden">
+      <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px]"></div>
+      
+      <div class="relative z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-sky-500/30">
+            VF
+          </div>
+          <span class="text-2xl font-bold tracking-tight">Vellore Finserv Service</span>
         </div>
-    </header>
+      </div>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="relative z-10 my-auto max-w-md">
+        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-6">
+          <i data-lucide="shield-check" class="w-4 h-4"></i> RTA Support & Consultancy Portal
+        </span>
+        <h1 class="text-4xl font-extrabold tracking-tight leading-tight text-white mb-4">
+          Streamlined RTA Case & Follow-Up Management
+        </h1>
+        <p class="text-slate-400 text-sm leading-relaxed mb-8">
+          Manage transmission, IEPF claims, duplicate share certificates, and client follow-ups with corporate accuracy and operational visibility.
+        </p>
 
-        <!-- DASHBOARD VIEW -->
-        <section id="view-dashboard" class="space-y-6">
-            <!-- Header Banner -->
-            <div class="bg-gradient-to-r from-blue-900 via-slate-800 to-indigo-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-center justify-between border border-blue-800/40">
-                <div class="flex items-center space-x-5 mb-4 md:mb-0">
-                    <div class="bg-white p-3 rounded-xl shadow">
-                        <img src="data:image/png;base64,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dIxDnVFfa4fh9olxQyO5xqpcomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIORjibRv/St8PZ21eYwga/D0KRxytSN8/CbpVnkMXT0MaXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAADNmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAJxqdW1iAAAAKGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaGFzaC5kYXRhAAAAAGxjYm9ypGpleGNsdXNpb25zgaJlc3RhcnQUZmxlbmd0aBkYymNhbGdmc2hhMjU2ZGhhc2hYILJo5J7LZfaMfKIf+tMTkhBbyeDyZzZbPoGZdfbDsbNfY3BhZE4AAAAAAAAAAAAAAAAAAAAAAfhqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAHHY2JvcqFnYWN0aW9uc4KkZmFjdGlvbmxjMnBhLmNyZWF0ZWRrZGVzY3JpcHRpb254IENyZWF0ZWQgYnkgR29vZ2xlIEdlbmVyYXRpdmUgQUkucWRpZ2l0YWxTb3VyY2VUeXBleEZodHRwOi8vY3YuaXB0Yy5vcmcvbmV3c2NvZGVzL2RpZ2l0YWxzb3VyY2V0eXBlL3RyYWluZWRBbGdvcml0aG1pY01lZGlhanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQ89BBSZ+7rzB0gQct1E1zC8AYWx4J+2IJ7n7zntYOZaiZmFjdGlvbmtjMnBhLmVkaXRlZGtkZXNjcmlwdGlvbngoQXBwbGllZCBpbXBlcmNlcHRpYmxlIFN5bnRoSUQgd2F0ZXJtYXJrLnFkaWdpdGFsU291cmNlVHlwZXhGaHR0cDovL2N2LmlwdGMub3JnL25ld3Njb2Rlcy9kaWdpdGFsc291cmNldHlwZS90cmFpbmVkQWxnb3JpdGhtaWNNZWRpYQAAAHFqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaW5ncmVkaWVudC52MwAAAAA9Y2JvcqJscmVsYXRpb25zaGlwZ2lucHV0VG9rZGVzY3JpcHRpb25ySW5wdXQgaW5ncmVkaWVudCAwAAAkTWp1bWIAAABHanVtZGMybWEAEQAQgAAAqgA4m3EDdXJuOmMycGE6NTY5Njg2ZjctYjZiMC04ZmQxLTJlYzQtNDkzZWZmYTEyYjYwAAAAGThqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAGQhjYm9y0oRZBiiiASYYIYJZAzwwggM4MIICv6ADAgECAhNUw+LJ+Ha8jE5m6TqZMqtESu4SMAoGCCqGSM49BAMDMFExCzAJBgNVBAYTAlVTMRMwEQYDVQQKDApHb29nbGUgTExDMS0wKwYDVQQDDCRHb29nbGUgQzJQQSBNZWRpYSBTZXJ2aWNlcyAxUCBJQ0EgRzMwHhcNMjYwNDE2MTQwMDQ1WhcNMjcwNDExMTQwMDQ0WjBrMQswCQYDVQQGEwJVUzETMBEGA1UEChMKR29vZ2xlIExMQzEcMBoGA1UECxMTR29vZ2xlIFN5c3RlbSA2NzE1NDEpMCcGA1UEAxMgR29vZ2xlIE1lZGlhIFByb2Nlc3NpbmcgU2VydmljZXMg0YP=" class="h-12 w-auto" alt="Vellore Finserv Logo">
-                    </div>
-                    <div>
-                        <h2 class="text-2xl font-bold">Vellore Finserv Operations Console</h2>
-                        <p class="text-blue-200 text-sm">Managing Registrar & Transfer Agent (RTA) requests, Investor Support & Compliance Follow-ups.</p>
-                    </div>
-                </div>
-                <div class="flex space-x-2">
-                    <span class="bg-blue-800/80 px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-600 flex items-center">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span> RTA Systems Sync: Active
-                    </span>
-                </div>
+        <div class="space-y-4 text-sm text-slate-300">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-sky-400">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
             </div>
-
-            <!-- Stats Overview Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Active Cases</p>
-                            <h3 id="stat-total-cases" class="text-3xl font-bold text-slate-800 mt-1">0</h3>
-                        </div>
-                        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
-                            <i class="fa-solid fa-folder text-xl"></i>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-3"><span class="text-emerald-600 font-semibold"><i class="fa-solid fa-arrow-up"></i> +12%</span> from last month</p>
-                </div>
-
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending RTA Response</p>
-                            <h3 id="stat-pending-rta" class="text-3xl font-bold text-amber-600 mt-1">0</h3>
-                        </div>
-                        <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
-                            <i class="fa-solid fa-hourglass-half text-xl"></i>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-3"><span class="text-amber-600 font-semibold">Requires follow-up</span></p>
-                </div>
-
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Overdue Follow-ups</p>
-                            <h3 id="stat-overdue" class="text-3xl font-bold text-rose-600 mt-1">0</h3>
-                        </div>
-                        <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
-                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                        </div>
-                    </div>
-                    <p class="text-xs text-rose-600 font-medium mt-3"><i class="fa-solid fa-circle-exclamation"></i> High Priority</p>
-                </div>
-
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Completed (This Month)</p>
-                            <h3 id="stat-completed" class="text-3xl font-bold text-emerald-600 mt-1">0</h3>
-                        </div>
-                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                            <i class="fa-solid fa-circle-check text-xl"></i>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-500 mt-3"><span class="text-emerald-600 font-semibold">94.2%</span> SLA Success rate</p>
-                </div>
+            <span>End-to-End Client Case Tracking</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-sky-400">
+              <i data-lucide="layers" class="w-4 h-4"></i>
             </div>
-
-            <!-- Analytics Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
-                    <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center">
-                        <i class="fa-solid fa-chart-column text-blue-600 mr-2"></i> Case Breakdown by Service & RTA
-                    </h3>
-                    <div class="h-64">
-                        <canvas id="chart-service-breakdown"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                    <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center">
-                        <i class="fa-solid fa-chart-pie text-indigo-600 mr-2"></i> Status Distribution
-                    </h3>
-                    <div class="h-64 flex items-center justify-center">
-                        <canvas id="chart-status-distribution"></canvas>
-                    </div>
-                </div>
+            <span>Customizable Service Master Workflow</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-sky-400">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
             </div>
-
-            <!-- Recent Follow-up Actions -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-800 flex items-center">
-                        <i class="fa-solid fa-list-check text-emerald-600 mr-2"></i> Urgent RTA Follow-Up Queue
-                    </h3>
-                    <button onclick="switchTab('followups')" class="text-sm font-semibold text-blue-600 hover:text-blue-800">View All Queue &rarr;</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
-                            <tr>
-                                <th class="px-6 py-3">Case ID & Investor</th>
-                                <th class="px-6 py-3">Service Category</th>
-                                <th class="px-6 py-3">Assigned RTA</th>
-                                <th class="px-6 py-3">Next Follow-up</th>
-                                <th class="px-6 py-3">Status</th>
-                                <th class="px-6 py-3 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dashboard-urgent-table" class="divide-y divide-slate-200">
-                            <!-- Injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="view-cases" class="hidden space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-slate-800">Cases & Financial Trackers</h2>
-                    <p class="text-slate-500 text-sm">Comprehensive list of all registered investor service requests.</p>
-                </div>
-                <button onclick="openNewCaseModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm px-4 py-2 rounded-lg shadow flex items-center">
-                    <i class="fa-solid fa-plus mr-2"></i> Add New Case
-                </button>
-            </div>
-
-            <!-- Filters Bar -->
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 items-center justify-between">
-                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto flex-1">
-                    <div class="relative flex-1 min-w-[200px]">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
-                        <input type="text" id="search-cases" oninput="renderCasesTable()" placeholder="Search investor, folio, PAN, case ID..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    </div>
-                    <select id="filter-rta" onchange="renderCasesTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                        <option value="ALL">All RTAs</option>
-                        <option value="CAMS">CAMS</option>
-                        <option value="KFintech">KFintech</option>
-                        <option value="Link Intime">Link Intime</option>
-                        <option value="Bigshare">Bigshare</option>
-                    </select>
-                    <select id="filter-status" onchange="renderCasesTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                        <option value="ALL">All Statuses</option>
-                        <option value="Pending RTA">Pending RTA</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Investor Action Required">Investor Action</option>
-                        <option value="Resolved">Resolved</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Cases Table -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
-                            <tr>
-                                <th class="px-6 py-3">Case Info</th>
-                                <th class="px-6 py-3">Investor & Folio</th>
-                                <th class="px-6 py-3">Service Request</th>
-                                <th class="px-6 py-3">RTA Partner</th>
-                                <th class="px-6 py-3">Last Update</th>
-                                <th class="px-6 py-3">Status</th>
-                                <th class="px-6 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cases-table-body" class="divide-y divide-slate-200">
-                            <!-- Injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <section id="view-followups" class="hidden space-y-6">
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800">RTA Follow-Up Queue</h2>
-                <p class="text-slate-500 text-sm">Track pending responses, schedule reminders, and log communications with RTAs.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Log Followup Form -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 h-fit">
-                    <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center">
-                        <i class="fa-solid fa-pen-to-square text-blue-600 mr-2"></i> Log Follow-Up Activity
-                    </h3>
-                    <form id="followup-form" onsubmit="handleLogFollowup(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Select Case</label>
-                            <select id="followup-case-id" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                <!-- Populated dynamically -->
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Communication Channel</label>
-                            <select id="followup-channel" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                                <option value="Email">Email to RTA</option>
-                                <option value="Portal">RTA Online Portal Ticket</option>
-                                <option value="Phone">Phone Call to RTA Exec</option>
-                                <option value="In-Person">Physical Visit / Branch Submission</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Activity Notes / Response</label>
-                            <textarea id="followup-notes" rows="3" required placeholder="Enter conversation details, ticket reference, or next required action..." class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Next Follow-Up Date</label>
-                            <input type="date" id="followup-next-date" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                        </div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded-lg text-sm transition">
-                            Log Activity & Update Queue
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Followup History Table -->
-                <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                    <div class="px-6 py-4 border-b border-slate-200">
-                        <h3 class="font-bold text-slate-800">Recent Follow-up Log History</h3>
-                    </div>
-                    <div class="overflow-x-auto custom-scrollbar flex-1 max-h-[500px]">
-                        <table class="w-full text-left text-sm text-slate-600">
-                            <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200 sticky top-0">
-                                <tr>
-                                    <th class="px-6 py-3">Date & Time</th>
-                                    <th class="px-6 py-3">Case ID</th>
-                                    <th class="px-6 py-3">Channel</th>
-                                    <th class="px-6 py-3">Notes</th>
-                                    <th class="px-6 py-3">Next Due</th>
-                                </tr>
-                            </thead>
-                            <tbody id="followup-history-table" class="divide-y divide-slate-200">
-                                <!-- Injected by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="view-investors" class="hidden space-y-6">
-            <div>
-                <h2 class="text-2xl font-bold text-slate-800">Investor Directory</h2>
-                <p class="text-slate-500 text-sm">Vellore Finserv client profile database and associated folio tracking.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="investors-grid">
-                <!-- Populated dynamically -->
-            </div>
-        </section>
-
-    </main>
-
-    <!-- New Request Modal -->
-    <div id="modal-new-case" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <img src="data:image/png;base64,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_hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQ89BBSZ+7rzB0gQct1E1zC8AYWx4J+2IJ7n7zntYOZaiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIFrEPjw6/2ISn+vBDv/WdIxDnVFfa4fh9olxQyO5xqpcomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIORjibRv/St8PZ21eYwga/D0KRxytSN8/CbpVnkMXT0MaXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAADNmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAJxqdW1iAAAAKGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaGFzaC5kYXRhAAAAAGxjYm9ypGpleGNsdXNpb25zgaJlc3RhcnQUZmxlbmd0aBkYymNhbGdmc2hhMjU2ZGhhc2hYILJo5J7LZfaMfKIf+tMTkhBbyeDyZzZbPoGZdfbDsbNfY3BhZE4AAAAAAAAAAAAAAAAAAAAAAfhqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAHHY2JvcqFnYWN0aW9uc4KkZmFjdGlvbmxjMnBhLmNyZWF0ZWRrZGVzY3JpcHRpb254IENyZWF0ZWQgYnkgR29vZ2xlIEdlbmVyYXRpdmUgQUkucWRpZ2l0YWxTb3VyY2VUeXBleEZodHRwOi8vY3YuaXB0Yy5vcmcvbmV3c2NvZGVzL2RpZ2l0YWxzb3VyY2V0eXBlL3RyYWluZWRBbGdvcml0aG1pY01lZGlhanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQ89BBSZ+7rzB0gQct1E1zC8AYWx4J+2IJ7n7zntYOZaiZmFjdGlvbmtjMnBhLmVkaXRlZGtkZXNjcmlwdGlvbngoQXBwbGllZCBpbXBlcmNlcHRpYmxlIFN5bnRoSUQgd2F0ZXJtYXJrLnFkaWdpdGFsU291cmNlVHlwZXhGaHR0cDovL2N2LmlwdGMub3JnL25ld3Njb2Rlcy9kaWdpdGFsc291cmNldHlwZS90cmFpbmVkQWxnb3JpdGhtaWNNZWRpYQAAAHFqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaW5ncmVkaWVudC52MwAAAAA9Y2JvcqJscmVsYXRpb25zaGlwZ2lucHV0VG9rZGVzY3JpcHRpb25ySW5wdXQgaW5ncmVkaWVudCAwAAAkTWp1bWIAAABHanVtZGMybWEAEQAQgAAAqgA4m3EDdXJuOmMycGE6NTY5Njg2ZjctYjZiMC04ZmQxLTJlYzQtNDkzZWZmYTEyYjYwAAAAGThqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAGQhjYm9y0oRZBiiiASYYIYJZAzwwggM4MIICv6ADAgECAhNUw+LJ+Ha8jE5m6TqZMqtESu4SMAoGCCqGSM49BAMDMFExCzAJBgNVBAYTAlVTMRMwEQYDVQQKDApHb29nbGUgTExDMS0wKwYDVQQDDCRHb29nbGUgQzJQQSBNZWRpYSBTZXJ2aWNlcyAxUCBJQ0EgRzMwHhcNMjYwNDE2MTQwMDQ1WhcNMjcwNDExMTQwMDQ0WjBrMQswCQYDVQQGEwJVUzETMBEGA1UEChMKR29vZ2xlIExMQzEcMBoGA1UECxMTR29vZ2xlIFN5c3RlbSA2NzE1NDEpMCcGA1UEAxMgR29vZ2xlIE1lZGlhIFByb2Nlc3NpbmcgU2VydmljZXMg0YP=" class="h-8 w-auto bg-white p-1 rounded" alt="Logo">
-                    <h3 class="font-bold text-lg">Create Service Request - Vellore Finserv</h3>
-                </div>
-                <button onclick="closeNewCaseModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <form onsubmit="handleCreateCase(event)" class="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Investor Name</label>
-                        <input type="text" id="new-investor-name" required placeholder="e.g. Ramesh Kumar" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">PAN Number</label>
-                        <input type="text" id="new-pan" required placeholder="ABCDE1234F" class="w-full border border-slate-300 rounded-lg p-2 text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Folio / Client Ref No.</label>
-                        <input type="text" id="new-folio" required placeholder="9102938102" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">Assigned RTA</label>
-                        <select id="new-rta" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                            <option value="CAMS">CAMS</option>
-                            <option value="KFintech">KFintech</option>
-                            <option value="Link Intime">Link Intime</option>
-                            <option value="Bigshare">Bigshare</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Service Category</label>
-                    <select id="new-service-category" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                        <option value="Transmission of Units">Transmission of Units (Death Claim)</option>
-                        <option value="KYC Update / Unfreeze">KYC Re-validation & Unfreeze</option>
-                        <option value="Bank Mandate Change">Bank Mandate & IFSC Correction</option>
-                        <option value="Dividend / Redemption Re-issue">Unclaimed Dividend / Redemption</option>
-                        <option value="Name / Address Correction">Name or Address Correction</option>
-                        <option value="Demat Consolidation">Folio Merger / Demat Remat</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Case Remarks / Initial Notes</label>
-                    <textarea id="new-remarks" rows="3" placeholder="Describe the service request details and documents received..." class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
-                </div>
-
-                <div class="pt-4 border-t border-slate-200 flex justify-end space-x-3">
-                    <button type="button" onclick="closeNewCaseModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-100">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold shadow">Create Case</button>
-                </div>
-            </form>
+            <span>Audit-Ready PDF & Excel Reports</span>
+          </div>
         </div>
+      </div>
+
+      <div class="relative z-10 text-xs text-slate-500">
+        &copy; 2026 Vellore Finserv Service. All rights reserved.
+      </div>
     </div>
 
-    <!-- Case Details & Update Modal -->
-    <div id="modal-case-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
-                <div>
-                    <h3 id="detail-case-id" class="font-bold text-lg">Case Details</h3>
-                    <p id="detail-case-category" class="text-xs text-blue-300"></p>
-                </div>
-                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <div class="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div>
-                        <p class="text-xs text-slate-500 font-semibold">Investor</p>
-                        <p id="detail-investor" class="font-bold text-slate-800 text-sm">-</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-500 font-semibold">PAN</p>
-                        <p id="detail-pan" class="font-bold text-slate-800 text-sm">-</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-500 font-semibold">Folio Number</p>
-                        <p id="detail-folio" class="font-bold text-slate-800 text-sm">-</p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-slate-500 font-semibold">RTA Partner</p>
-                        <p id="detail-rta" class="font-bold text-slate-800 text-sm">-</p>
-                    </div>
-                </div>
-
-                <!-- Update Status Section -->
-                <div class="border border-slate-200 p-4 rounded-xl space-y-3">
-                    <h4 class="font-semibold text-sm text-slate-800">Update Status & SLA</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
-                            <select id="detail-status-select" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
-                                <option value="Pending RTA">Pending RTA</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Investor Action Required">Investor Action Required</option>
-                                <option value="Resolved">Resolved</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 mb-1">Next Required Action Date</label>
-                            <input type="date" id="detail-next-date" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
-                        </div>
-                    </div>
-                    <button onclick="saveCaseStatusUpdate()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-500 transition">Save Status Changes</button>
-                </div>
-
-                <!-- Timeline of Logs -->
-                <div>
-                    <h4 class="font-semibold text-sm text-slate-800 mb-3">Audit & Follow-up History Timeline</h4>
-                    <div id="detail-timeline" class="space-y-3 pl-4 border-l-2 border-slate-200">
-                        <!-- Populated dynamically -->
-                    </div>
-                </div>
-            </div>
+    <!-- Right Login Form Panel -->
+    <div class="flex flex-col justify-center items-center p-6 sm:p-12 bg-white">
+      <div class="w-full max-w-md">
+        <div class="lg:hidden flex items-center gap-3 mb-8">
+          <div class="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center font-bold text-xl text-white">
+            VF
+          </div>
+          <span class="text-xl font-bold text-slate-900">Vellore Finserv Service</span>
         </div>
+
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">Welcome back</h2>
+        <p class="text-slate-500 text-sm mb-6">Enter your credentials to access the management portal.</p>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 mb-6 flex items-center gap-2">
+          <i data-lucide="info" class="w-4 h-4 text-amber-600 shrink-0"></i>
+          <div>
+            <strong>Default Credentials:</strong> Username: <code class="bg-amber-100 px-1 rounded font-bold">admin</code> | Password: <code class="bg-amber-100 px-1 rounded font-bold">admin</code>
+          </div>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Username</label>
+            <div class="relative">
+              <i data-lucide="user" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="text" id="loginUsername" required value="admin" class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Enter username">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Password</label>
+            <div class="relative">
+              <i data-lucide="lock" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+              <input type="password" id="loginPassword" required value="admin" class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Enter password">
+            </div>
+          </div>
+
+          <div id="loginError" class="hidden text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200">
+            Invalid username or password.
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm rounded-lg shadow-md transition-colors flex items-center justify-center gap-2">
+            <span>Sign In</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </form>
+
+        <!-- Deferred Credentials Integration Summary Box -->
+        <div class="mt-8 pt-6 border-t border-slate-200">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Enterprise Authentication Integrations</h4>
+          <div class="space-y-2 text-xs text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i data-lucide="chrome" class="w-3.5 h-3.5 text-slate-400"></i> Google OAuth</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-600 font-medium">Deferred</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i> Resend Email API</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-600 font-medium">Deferred</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="flex items-center gap-1.5"><i data-lucide="message-square" class="w-3.5 h-3.5 text-slate-400"></i> Twilio SMS Reminders</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-slate-200 text-slate-600 font-medium">Deferred</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-// App State - Defaulting to CLEAN state with 0 pre-filled pending RTA cases
-let rtaRecords = [];
-let auditLogs = [];
-let currentFilter = 'all';
-let searchQuery = '';
-let editingRecordId = null;
-
-// Initial sample data template kept for optional loading
-const SAMPLE_DATA = [
-    {
-        id: "RTA-" + Math.floor(100000 + Math.random() * 900000),
-        clientName: "Rajesh Kumar",
-        folioNumber: "102938475",
-        folioType: "Mutual Fund Folio",
-        rtaName: "CAMS",
-        serviceType: "Address Change & Bank Mandate",
-        submissionDate: "2026-09-10",
-        expectedDate: "2026-09-20",
-        status: "Pending",
-        followUpCount: 2,
-        lastFollowUp: "2026-09-18",
-        nextFollowUp: "2026-09-23",
-        notes: "Documents submitted to local CAMS office. Awaiting confirmation.",
-        priority: "High"
-    },
-    {
-        id: "RTA-" + Math.floor(100000 + Math.random() * 900000),
-        clientName: "Priya Sharma",
-        folioNumber: "987654321",
-        folioType: "Demat Account",
-        rtaName: "KFintech",
-        serviceType: "Transmission of Units",
-        submissionDate: "2026-09-05",
-        expectedDate: "2026-09-18",
-        status: "In Progress",
-        followUpCount: 3,
-        lastFollowUp: "2026-09-19",
-        nextFollowUp: "2026-09-24",
-        notes: "NOC received from legal heirs. RTA processing verification.",
-        priority: "Medium"
-    }
-];
-
-function loadData() {
-    const storedRecords = localStorage.getItem('vellore_finserv_rta_records');
-    if (storedRecords) {
-        rtaRecords = JSON.parse(storedRecords);
-    } else {
-        // DEFAULT IS STRICTLY CLEAN - 0 RECORDS
-        rtaRecords = [];
-        saveData();
-    }
+  <!-- ==================== MAIN DASHBOARD LAYOUT ==================== -->
+  <div id="appLayout" class="hidden min-h-screen flex flex-col lg:flex-row">
     
-    const storedLogs = localStorage.getItem('vellore_finserv_audit_logs');
-    if (storedLogs) {
-        auditLogs = JSON.parse(storedLogs);
-    } else {
-        auditLogs = [{
-            timestamp: new Date().toISOString(),
-            action: "System Initialization",
-            details: "System launched clean with 0 pending records."
-        }];
-        saveAuditLogs();
-    }
-}
+    <!-- Left Sidebar -->
+    <aside class="w-full lg:w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0">
+      <!-- Sidebar Header -->
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-sky-500 text-white font-bold flex items-center justify-center text-sm shadow">
+            VF
+          </div>
+          <div>
+            <h1 class="text-sm font-bold text-white leading-none">Vellore Finserv</h1>
+            <span class="text-[10px] text-sky-400 font-medium">RTA Consultancy System</span>
+          </div>
+        </div>
+      </div>
 
-function loadSampleData() {
-    if (confirm("Are you sure you want to load sample demo records? This will merge sample data into your system.")) {
-        rtaRecords = [...rtaRecords, ...JSON.parse(JSON.stringify(SAMPLE_DATA))];
-        saveData();
-        addAuditLog("Sample Data Loaded", "Added demo RTA records to the system.");
-        renderApp();
-    }
-}
+      <!-- Navigation Menu -->
+      <nav class="flex-1 p-4 space-y-1">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors bg-sky-600 text-white">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Dashboard</span>
+        </button>
 
-function clearAllData() {
-    if (confirm("Are you sure you want to clear ALL RTA records? This will permanently reset the system to clean/empty state.")) {
-        rtaRecords = [];
-        saveData();
-        addAuditLog("System Cleared", "Reset system to clean empty state (0 records).");
-        renderApp();
-    }
-}
+        <button onclick="switchTab('clients')" id="nav-clients" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Client Cases</span>
+        </button>
 
-        function renderDashboard() {
-            const total = casesData.length;
-            const pendingRTA = casesData.filter(c => c.status === 'Pending RTA').length;
-            const overdue = casesData.filter(c => new Date(c.nextFollowup) <= new Date() && c.status !== 'Resolved').length;
-            const completed = casesData.filter(c => c.status === 'Resolved').length;
+        <button onclick="switchTab('services')" id="nav-services" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          <span>Service Master</span>
+        </button>
 
-            document.getElementById('stat-total-cases').innerText = total;
-            document.getElementById('stat-pending-rta').innerText = pendingRTA;
-            document.getElementById('stat-overdue').innerText = overdue;
-            document.getElementById('stat-completed').innerText = completed;
+        <button onclick="switchTab('reports')" id="nav-reports" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>Reports & Audits</span>
+        </button>
 
-            const urgentTable = document.getElementById('dashboard-urgent-table');
-            urgentTable.innerHTML = '';
+        <button onclick="switchTab('users')" id="nav-users" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors hover:bg-slate-800 hover:text-white">
+          <i data-lucide="user-cog" class="w-4 h-4"></i>
+          <span>User Management</span>
+        </button>
+      </nav>
 
-            const urgentCases = casesData.filter(c => c.status !== 'Resolved').slice(0, 5);
+      <!-- Sidebar Footer User Profile -->
+      <div class="p-4 border-t border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3 overflow-hidden">
+          <div class="w-8 h-8 rounded-full bg-slate-700 text-sky-300 flex items-center justify-center font-bold text-xs shrink-0" id="userAvatar">
+            AD
+          </div>
+          <div class="truncate">
+            <p class="text-xs font-semibold text-white truncate" id="userNameDisplay">Admin User</p>
+            <p class="text-[10px] text-slate-400 capitalize" id="userRoleDisplay">Administrator</p>
+          </div>
+        </div>
+        <button onclick="handleLogout()" class="text-slate-400 hover:text-red-400 transition-colors p-1" title="Sign Out">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </aside>
 
-            if (urgentCases.length === 0) {
-                urgentTable.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-slate-400">No active cases requiring urgent follow-up.</td></tr>`;
-                return;
-            }
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto min-h-screen flex flex-col">
+      <!-- Top Header Bar -->
+      <header class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div>
+          <h2 id="pageTitle" class="text-xl font-bold text-slate-900">Dashboard</h2>
+          <p id="pageSubtitle" class="text-xs text-slate-500">Overview of active cases, revenue, and pending follow-ups</p>
+        </div>
 
-            urgentCases.forEach(c => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                tr.innerHTML = `
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-slate-800">${c.id}</div>
-                        <div class="text-xs text-slate-500">${c.investor}</div>
-                    </td>
-                    <td class="px-6 py-4 text-slate-700 font-medium">${c.service}</td>
-                    <td class="px-6 py-4"><span class="px-2.5 py-1 bg-slate-100 font-medium text-slate-700 rounded text-xs">${c.rta}</span></td>
-                    <td class="px-6 py-4 text-xs font-semibold ${new Date(c.nextFollowup) <= new Date() ? 'text-rose-600' : 'text-slate-600'}">${c.nextFollowup}</td>
-                    <td class="px-6 py-4">${getStatusBadge(c.status)}</td>
-                    <td class="px-6 py-4 text-right">
-                        <button onclick="openCaseDetail('${c.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold">Manage &rarr;</button>
-                    </td>
-                `;
-                urgentTable.appendChild(tr);
-            });
-        }
+        <div class="flex items-center gap-3">
+          <button onclick="openNewClientModal()" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-medium text-xs rounded-lg shadow transition-colors flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>New Client Case</span>
+          </button>
+        </div>
+      </header>
 
-        function renderCasesTable() {
-            const tableBody = document.getElementById('cases-table-body');
-            const search = document.getElementById('search-cases').value.toLowerCase();
-            const filterRta = document.getElementById('filter-rta').value;
-            const filterStatus = document.getElementById('filter-status').value;
+      <!-- Content Views container -->
+      <div class="p-6 flex-1 space-y-6">
 
-            tableBody.innerHTML = '';
+        <!-- ==================== TAB 1: DASHBOARD ==================== -->
+        <div id="tab-dashboard" class="space-y-6">
+          <!-- Summary Metric Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                <span>TOTAL CLIENTS</span>
+                <i data-lucide="users" class="w-4 h-4 text-sky-600"></i>
+              </div>
+              <p id="statTotalClients" class="text-2xl font-bold text-slate-900">0</p>
+            </div>
 
-            const filtered = casesData.filter(c => {
-                const matchesSearch = c.investor.toLowerCase().includes(search) || c.id.toLowerCase().includes(search) || c.pan.toLowerCase().includes(search) || c.folio.includes(search);
-                const matchesRta = filterRta === 'ALL' || c.rta === filterRta;
-                const matchesStatus = filterStatus === 'ALL' || c.status === filterStatus;
-                return matchesSearch && matchesRta && matchesStatus;
-            });
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                <span>PENDING / IN PROCESS</span>
+                <i data-lucide="clock" class="w-4 h-4 text-amber-500"></i>
+              </div>
+              <p id="statPendingCases" class="text-2xl font-bold text-amber-600">0</p>
+            </div>
 
-            if(filtered.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-slate-400">No cases matched your criteria.</td></tr>`;
-                return;
-            }
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                <span>COMPLETED CASES</span>
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
+              </div>
+              <p id="statCompletedCases" class="text-2xl font-bold text-emerald-600">0</p>
+            </div>
 
-            filtered.forEach(c => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition";
-                tr.innerHTML = `
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-blue-600">${c.id}</div>
-                        <div class="text-xs text-slate-400">PAN: ${c.pan}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <div class="font-semibold text-slate-800">${c.investor}</div>
-                        <div class="text-xs text-slate-500">Folio: ${c.folio}</div>
-                    </td>
-                    <td class="px-6 py-4 font-medium text-slate-700">${c.service}</td>
-                    <td class="px-6 py-4"><span class="px-2.5 py-1 bg-slate-100 font-semibold text-slate-700 rounded text-xs">${c.rta}</span></td>
-                    <td class="px-6 py-4 text-xs text-slate-500">${c.lastUpdated}</td>
-                    <td class="px-6 py-4">${getStatusBadge(c.status)}</td>
-                    <td class="px-6 py-4 text-right space-x-2">
-                        <button onclick="openCaseDetail('${c.id}')" class="px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold">View Details</button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-            });
-        }
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                <span>TODAY FOLLOW-UPS</span>
+                <i data-lucide="calendar" class="w-4 h-4 text-sky-500"></i>
+              </div>
+              <p id="statTodayFollowups" class="text-2xl font-bold text-sky-600">0</p>
+            </div>
 
-        function renderFollowupHistory() {
-            const table = document.getElementById('followup-history-table');
-            table.innerHTML = '';
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between text-slate-500 text-xs font-semibold mb-1">
+                <span>OVERDUE CASES</span>
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-500"></i>
+              </div>
+              <p id="statOverdueCases" class="text-2xl font-bold text-rose-600">0</p>
+            </div>
+          </div>
 
-            let allLogs = [];
-            casesData.forEach(c => {
-                c.logs.forEach(l => {
-                    allLogs.push({ ...l, caseId: c.id });
-                });
-            });
-
-            allLogs.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-            allLogs.forEach(l => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-6 py-3 text-xs font-semibold text-slate-500">${l.date}</td>
-                    <td class="px-6 py-3 font-bold text-blue-600 text-xs">${l.caseId}</td>
-                    <td class="px-6 py-3 text-xs"><span class="px-2 py-0.5 bg-slate-100 rounded border border-slate-200">${l.channel}</span></td>
-                    <td class="px-6 py-3 text-xs text-slate-700">${l.notes}</td>
-                    <td class="px-6 py-3 text-xs text-slate-500">${l.nextDate || '-'}</td>
-                `;
-                table.appendChild(tr);
-            });
-        }
-
-        function renderInvestorsGrid() {
-            const grid = document.getElementById('investors-grid');
-            grid.innerHTML = '';
-
-            const investorMap = {};
-            casesData.forEach(c => {
-                if(!investorMap[c.pan]) {
-                    investorMap[c.pan] = { name: c.investor, pan: c.pan, cases: [] };
-                }
-                investorMap[c.pan].cases.push(c);
-            });
-
-            Object.values(investorMap).forEach(inv => {
-                const card = document.createElement('div');
-                card.className = "bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition space-y-3";
-                card.innerHTML = `
-                    <div class="flex justify-between items-start border-b border-slate-100 pb-3">
-                        <div>
-                            <h3 class="font-bold text-slate-800 text-base">${inv.name}</h3>
-                            <p class="text-xs text-slate-400 font-mono">PAN: ${inv.pan}</p>
-                        </div>
-                        <span class="bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-full">${inv.cases.length} Service Case(s)</span>
-                    </div>
-                    <div class="space-y-2">
-                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Associated Cases & Folios</p>
-                        ${inv.cases.map(cs => `
-                            <div class="flex justify-between items-center text-xs p-2 bg-slate-50 rounded">
-                                <span class="font-medium text-slate-700">${cs.service} (${cs.rta})</span>
-                                <span class="font-mono text-slate-500">Folio: ${cs.folio}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function populateCaseDropdowns() {
-            const select = document.getElementById('followup-case-id');
-            select.innerHTML = casesData.map(c => `<option value="${c.id}">${c.id} - ${c.investor} (${c.service})</option>`).join('');
-        }
-
-        function handleCreateCase(e) {
-            e.preventDefault();
-            const newId = `VFS-2026-${100 + casesData.length + 1}`;
-            const newCase = {
-                id: newId,
-                investor: document.getElementById('new-investor-name').value,
-                pan: document.getElementById('new-pan').value.toUpperCase(),
-                folio: document.getElementById('new-folio').value,
-                service: document.getElementById('new-service-category').value,
-                rta: document.getElementById('new-rta').value,
-                status: 'Pending RTA',
-                lastUpdated: new Date().toISOString().split('T')[0],
-                nextFollowup: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
-                logs: [{ date: new Date().toISOString().split('T')[0], channel: 'System', notes: document.getElementById('new-remarks').value || 'Case initiated.' }]
-            };
-
-            casesData.unshift(newCase);
-            closeNewCaseModal();
-            renderDashboard();
-            renderCasesTable();
-            populateCaseDropdowns();
-            renderInvestorsGrid();
-            updateCharts();
-            e.target.reset();
-        }
-
-        function handleLogFollowup(e) {
-            e.preventDefault();
-            const caseId = document.getElementById('followup-case-id').value;
-            const channel = document.getElementById('followup-channel').value;
-            const notes = document.getElementById('followup-notes').value;
-            const nextDate = document.getElementById('followup-next-date').value;
-
-            const targetCase = casesData.find(c => c.id === caseId);
-            if(targetCase) {
-                targetCase.lastUpdated = new Date().toISOString().split('T')[0];
-                targetCase.nextFollowup = nextDate;
-                targetCase.logs.unshift({ date: new Date().toISOString().split('T')[0], channel, notes, nextDate });
-            }
-
-            renderDashboard();
-            renderCasesTable();
-            renderFollowupHistory();
-            e.target.reset();
-        }
-
-        function openCaseDetail(caseId) {
-            selectedCaseForDetail = casesData.find(c => c.id === caseId);
-            if(!selectedCaseForDetail) return;
-
-            document.getElementById('detail-case-id').innerText = `${selectedCaseForDetail.id}`;
-            document.getElementById('detail-case-category').innerText = selectedCaseForDetail.service;
-            document.getElementById('detail-investor').innerText = selectedCaseForDetail.investor;
-            document.getElementById('detail-pan').innerText = selectedCaseForDetail.pan;
-            document.getElementById('detail-folio').innerText = selectedCaseForDetail.folio;
-            document.getElementById('detail-rta').innerText = selectedCaseForDetail.rta;
-            document.getElementById('detail-status-select').value = selectedCaseForDetail.status;
-            document.getElementById('detail-next-date').value = selectedCaseForDetail.nextFollowup;
-
-            const timeline = document.getElementById('detail-timeline');
-            timeline.innerHTML = selectedCaseForDetail.logs.map(l => `
-                <div class="relative pl-4 pb-3">
-                    <div class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-blue-600"></div>
-                    <div class="text-xs text-slate-400 font-semibold">${l.date} - ${l.channel}</div>
-                    <div class="text-sm text-slate-700 mt-0.5">${l.notes}</div>
+          <!-- Revenue & Summary Section -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Revenue Card -->
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6 rounded-xl shadow-md lg:col-span-1 flex flex-col justify-between">
+              <div>
+                <span class="text-xs font-semibold text-sky-400 uppercase tracking-wider">Financial Overview</span>
+                <h3 class="text-lg font-bold text-white mt-1">Total Collections</h3>
+                
+                <div class="mt-6 space-y-4">
+                  <div>
+                    <p class="text-xs text-slate-400">Total Advance Received</p>
+                    <p id="statAdvanceReceived" class="text-2xl font-extrabold text-emerald-400">₹0</p>
+                  </div>
+                  <div>
+                    <p class="text-xs text-slate-400">Balance Pending Recovery</p>
+                    <p id="statBalancePending" class="text-xl font-bold text-amber-400">₹0</p>
+                  </div>
                 </div>
-            `).join('');
+              </div>
 
-            document.getElementById('modal-case-detail').classList.remove('hidden');
+              <div class="mt-6 pt-4 border-t border-slate-700/60 text-xs text-slate-400">
+                Calculated automatically across all registered client files.
+              </div>
+            </div>
+
+            <!-- Follow-up Alerts & Quick List -->
+            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-2 space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <i data-lucide="bell" class="w-4 h-4 text-sky-600"></i> Today & Overdue Follow-up Schedule
+                </h3>
+                <span class="text-xs text-slate-400">Action items requiring attention</span>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider">
+                    <tr>
+                      <th class="p-2.5">Client</th>
+                      <th class="p-2.5">Service</th>
+                      <th class="p-2.5">Follow-up Date</th>
+                      <th class="p-2.5">Status</th>
+                      <th class="p-2.5">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboardFollowupTable" class="divide-y divide-slate-100">
+                    <!-- Dynamic Rows -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 2: CLIENT CASES ==================== -->
+        <div id="tab-clients" class="hidden space-y-4">
+          <!-- Filters & Actions -->
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
+            <div class="flex flex-1 gap-3 w-full md:w-auto">
+              <div class="relative flex-1">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="clientSearch" oninput="renderClientsTable()" placeholder="Search client name, folio, company..." class="w-full pl-9 pr-4 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              </div>
+              <select id="clientStatusFilter" onchange="renderClientsTable()" class="px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white">
+                <option value="ALL">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="In Process">In Process</option>
+                <option value="Completed">Completed</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Clients Table -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
+                  <tr>
+                    <th class="p-3">Client Details</th>
+                    <th class="p-3">Folio & Company</th>
+                    <th class="p-3">Service</th>
+                    <th class="p-3">Charges (₹)</th>
+                    <th class="p-3">Follow-Up Date</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="clientsTableBody" class="divide-y divide-slate-100">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3: SERVICE MASTER ==================== -->
+        <div id="tab-services" class="hidden space-y-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Service Master Catalog</h3>
+              <p class="text-xs text-slate-500">Drag rows using the handle icon to reorder service priorities.</p>
+            </div>
+            <button onclick="openNewServiceModal()" class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow transition-colors flex items-center gap-1.5">
+              <i data-lucide="plus" class="w-4 h-4"></i> Add Service
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
+                <tr>
+                  <th class="p-3 w-10 text-center">Order</th>
+                  <th class="p-3">Service Code</th>
+                  <th class="p-3">Service Name</th>
+                  <th class="p-3">Est. TAT</th>
+                  <th class="p-3">Default Fee (₹)</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="servicesTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamic Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 4: REPORTS & AUDITS ==================== -->
+        <div id="tab-reports" class="hidden space-y-6">
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4 no-print">
+            <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">Filter Board Review & Audit Reports</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Status Filter</label>
+                <select id="reportStatusFilter" class="w-full p-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <option value="ALL">All Statuses</option>
+                  <option value="Pending">Pending</option>
+                  <option value="In Process">In Process</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Service Type</label>
+                <select id="reportServiceFilter" class="w-full p-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <option value="ALL">All Services</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Follow-up Date Range</label>
+                <div class="grid grid-cols-2 gap-2">
+                  <input type="date" id="reportStartDate" class="p-2 text-xs border border-slate-300 rounded-lg">
+                  <input type="date" id="reportEndDate" class="p-2 text-xs border border-slate-300 rounded-lg">
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-2 justify-end pt-2">
+              <button onclick="generateReport()" class="px-4 py-2 bg-sky-600 text-white text-xs font-semibold rounded-lg hover:bg-sky-700 transition-colors flex items-center gap-1.5">
+                <i data-lucide="filter" class="w-4 h-4"></i> Apply Filter
+              </button>
+              <button onclick="exportToExcel()" class="px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1.5">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Export Excel
+              </button>
+              <button onclick="exportToPDF()" class="px-4 py-2 bg-slate-800 text-white text-xs font-semibold rounded-lg hover:bg-slate-900 transition-colors flex items-center gap-1.5">
+                <i data-lucide="printer" class="w-4 h-4"></i> Print / PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Printable Area -->
+          <div id="reportPrintArea" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex justify-between items-start border-b border-slate-200 pb-4">
+              <div>
+                <h2 class="text-lg font-bold text-slate-900">Vellore Finserv Service</h2>
+                <p class="text-xs text-slate-500">RTA Consultancy Follow-up & Status Audit Report</p>
+              </div>
+              <div class="text-right text-xs text-slate-400">
+                <p>Generated: <span id="reportGeneratedDate">--</span></p>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-300">
+                    <th class="p-2 border border-slate-200">#</th>
+                    <th class="p-2 border border-slate-200">Client Name</th>
+                    <th class="p-2 border border-slate-200">Mobile</th>
+                    <th class="p-2 border border-slate-200">Folio No</th>
+                    <th class="p-2 border border-slate-200">Company</th>
+                    <th class="p-2 border border-slate-200">Service</th>
+                    <th class="p-2 border border-slate-200">Claim (₹)</th>
+                    <th class="p-2 border border-slate-200">Charges (₹)</th>
+                    <th class="p-2 border border-slate-200">Advance (₹)</th>
+                    <th class="p-2 border border-slate-200">Balance (₹)</th>
+                    <th class="p-2 border border-slate-200">Status</th>
+                    <th class="p-2 border border-slate-200">Next Follow-Up</th>
+                  </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                  <!-- Dynamic Content -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 5: USER MANAGEMENT ==================== -->
+        <div id="tab-users" class="hidden space-y-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">User Management</h3>
+              <p class="text-xs text-slate-500">Manage office staff access and administrative roles.</p>
+            </div>
+            <button onclick="openNewUserModal()" class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow transition-colors flex items-center gap-1.5">
+              <i data-lucide="user-plus" class="w-4 h-4"></i> Add New Staff
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider border-b border-slate-200">
+                <tr>
+                  <th class="p-3">User</th>
+                  <th class="p-3">Username</th>
+                  <th class="p-3">Role</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody" class="divide-y divide-slate-100">
+                <!-- Dynamic Rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- CLIENT MODAL (ADD / EDIT) -->
+  <div id="clientModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <h3 id="clientModalTitle" class="text-base font-bold text-slate-900">Create New Client Record</h3>
+        <button onclick="closeModal('clientModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="clientForm" onsubmit="saveClient(event)" class="p-6 overflow-y-auto space-y-4 text-xs">
+        <input type="hidden" id="clientId">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Client Name *</label>
+            <input type="text" id="clientName" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Mobile Number *</label>
+            <input type="tel" id="clientMobile" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Email Address</label>
+            <input type="email" id="clientEmail" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">PAN Number</label>
+            <input type="text" id="clientPAN" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none uppercase">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Folio Number *</label>
+            <input type="text" id="clientFolio" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none uppercase">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Company Name *</label>
+            <input type="text" id="clientCompany" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Service Type *</label>
+            <select id="clientService" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white">
+              <!-- Dynamic Options -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Claim Amount (₹)</label>
+            <input type="number" id="clientClaim" value="0" min="0" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Service Charges (₹) *</label>
+            <input type="number" id="clientCharges" required value="0" min="0" oninput="calculateBalance()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Advance Received (₹)</label>
+            <input type="number" id="clientAdvance" value="0" min="0" oninput="calculateBalance()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Balance Pending (₹)</label>
+            <input type="number" id="clientBalance" readonly class="w-full p-2 border border-slate-200 rounded-lg bg-slate-100 font-bold text-slate-700">
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Status *</label>
+            <select id="clientStatus" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white">
+              <option value="Pending">Pending</option>
+              <option value="In Process">In Process</option>
+              <option value="Completed">Completed</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Next Follow-Up Date *</label>
+            <input type="date" id="clientFollowup" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Notes & Case Remarks</label>
+          <textarea id="clientNotes" rows="3" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Enter follow-up history, investor communication notes..."></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+          <button type="button" onclick="closeModal('clientModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow">Save Case</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SERVICE MODAL -->
+  <div id="serviceModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <h3 id="serviceModalTitle" class="text-base font-bold text-slate-900">Add Custom Service</h3>
+        <button onclick="closeModal('serviceModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="serviceForm" onsubmit="saveService(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="serviceId">
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Service Code *</label>
+          <input type="text" id="serviceCode" required placeholder="e.g. DUP-CERT" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none uppercase">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Service Name *</label>
+          <input type="text" id="serviceName" required placeholder="e.g. Duplicate Share Certificate" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Est. Turnaround Time (Days)</label>
+          <input type="number" id="serviceTat" value="30" min="1" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Default Base Fee (₹)</label>
+          <input type="number" id="serviceFee" value="5000" min="0" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+          <button type="button" onclick="closeModal('serviceModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow">Save Service</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- USER MODAL -->
+  <div id="userModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <h3 id="userModalTitle" class="text-base font-bold text-slate-900">Add Staff User</h3>
+        <button onclick="closeModal('userModal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="userForm" onsubmit="saveUser(event)" class="p-6 space-y-4 text-xs">
+        <input type="hidden" id="userId">
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Full Name *</label>
+          <input type="text" id="userFullName" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Username *</label>
+          <input type="text" id="userUsername" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Password *</label>
+          <input type="password" id="userPassword" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Role *</label>
+          <select id="userRole" required class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none bg-white">
+            <option value="Staff">Staff</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+          <button type="button" onclick="closeModal('userModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-50 font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg shadow">Save User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // State Management
+    let currentUser = null;
+    let clients = [];
+    let services = [];
+    let users = [
+      { id: '1', name: 'Admin User', username: 'admin', role: 'Admin', active: true }
+    ];
+
+    // Load initial date string
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      document.getElementById('reportGeneratedDate').innerText = new Date().toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+    });
+
+    // Login Handler
+    function handleLogin(e) {
+      e.preventDefault();
+      const u = document.getElementById('loginUsername').value.trim();
+      const p = document.getElementById('loginPassword').value.trim();
+
+      const found = users.find(usr => usr.username.toLowerCase() === u.toLowerCase());
+      if (found && (p === 'admin' || p === 'password')) {
+        currentUser = found;
+        document.getElementById('loginPage').classList.add('hidden');
+        document.getElementById('appLayout').classList.remove('hidden');
+        document.getElementById('userNameDisplay').innerText = found.name;
+        document.getElementById('userRoleDisplay').innerText = found.role;
+        document.getElementById('userAvatar').innerText = found.name.split(' ').map(n=>n[0]).join('').toUpperCase();
+        
+        switchTab('dashboard');
+        refreshAll();
+      } else {
+        document.getElementById('loginError').classList.remove('hidden');
+      }
+    }
+
+    function handleLogout() {
+      currentUser = null;
+      document.getElementById('appLayout').classList.add('hidden');
+      document.getElementById('loginPage').classList.remove('hidden');
+    }
+
+    // Tab Navigation
+    function switchTab(tabId) {
+      ['dashboard', 'clients', 'services', 'reports', 'users'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const nav = document.getElementById(`nav-${t}`);
+        if (t === tabId) {
+          el.classList.remove('hidden');
+          nav.classList.add('bg-sky-600', 'text-white');
+          nav.classList.remove('hover:bg-slate-800', 'hover:text-white');
+        } else {
+          el.classList.add('hidden');
+          nav.classList.remove('bg-sky-600', 'text-white');
+          nav.classList.add('hover:bg-slate-800', 'hover:text-white');
         }
+      });
 
-        function saveCaseStatusUpdate() {
-            if(!selectedCaseForDetail) return;
+      const titles = {
+        dashboard: { title: 'Dashboard Overview', sub: 'Active case tracking and daily follow-up metrics' },
+        clients: { title: 'Client Cases Management', sub: 'Search, filter, and edit registered RTA service cases' },
+        services: { title: 'Service Master Catalog', sub: 'Configure and reorder default and custom service items' },
+        reports: { title: 'Reports & Audits', sub: 'Filter board reviews and export case registers to PDF/Excel' },
+        users: { title: 'User Management', sub: 'Manage team staff members and administrative privileges' }
+      };
 
-            selectedCaseForDetail.status = document.getElementById('detail-status-select').value;
-            selectedCaseForDetail.nextFollowup = document.getElementById('detail-next-date').value;
-            selectedCaseForDetail.lastUpdated = new Date().toISOString().split('T')[0];
+      document.getElementById('pageTitle').innerText = titles[tabId].title;
+      document.getElementById('pageSubtitle').innerText = titles[tabId].sub;
 
-            closeDetailModal();
-            renderDashboard();
-            renderCasesTable();
-            updateCharts();
-        }
+      if (tabId === 'reports') generateReport();
+      lucide.createIcons();
+    }
 
-        function openNewCaseModal() {
-            document.getElementById('modal-new-case').classList.remove('hidden');
-        }
+    // Modal Helpers
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
 
-        function closeNewCaseModal() {
-            document.getElementById('modal-new-case').classList.add('hidden');
-        }
+    function openNewClientModal() {
+      document.getElementById('clientForm').reset();
+      document.getElementById('clientId').value = '';
+      document.getElementById('clientModalTitle').innerText = 'Create New Client Case';
+      populateServiceDropdown();
+      document.getElementById('clientFollowup').value = new Date().toISOString().split('T')[0];
+      document.getElementById('clientModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
 
-        function closeDetailModal() {
-            document.getElementById('modal-case-detail').classList.add('hidden');
-        }
+    function openNewServiceModal() {
+      document.getElementById('serviceForm').reset();
+      document.getElementById('serviceId').value = '';
+      document.getElementById('serviceModalTitle').innerText = 'Add Custom Service Item';
+      document.getElementById('serviceModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
 
-        function getStatusBadge(status) {
-            switch(status) {
-                case 'Pending RTA': return `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 font-semibold rounded text-xs border border-amber-200">Pending RTA</span>`;
-                case 'In Progress': return `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-semibold rounded text-xs border border-blue-200">In Progress</span>`;
-                case 'Investor Action Required': return `<span class="px-2.5 py-1 bg-purple-50 text-purple-700 font-semibold rounded text-xs border border-purple-200">Investor Action</span>`;
-                case 'Resolved': return `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold rounded text-xs border border-emerald-200">Resolved</span>`;
-                default: return `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded text-xs">${status}</span>`;
-            }
-        }
+    function openNewUserModal() {
+      document.getElementById('userForm').reset();
+      document.getElementById('userId').value = '';
+      document.getElementById('userModalTitle').innerText = 'Add New Staff User';
+      document.getElementById('userModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
 
-        function initCharts() {
-            const ctxService = document.getElementById('chart-service-breakdown').getContext('2d');
-            serviceChart = new Chart(ctxService, {
-                type: 'bar',
-                data: getServiceChartData(),
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+    function calculateBalance() {
+      const chg = parseFloat(document.getElementById('clientCharges').value) || 0;
+      const adv = parseFloat(document.getElementById('clientAdvance').value) || 0;
+      document.getElementById('clientBalance').value = Math.max(0, chg - adv);
+    }
 
-            const ctxStatus = document.getElementById('chart-status-distribution').getContext('2d');
-            statusChart = new Chart(ctxStatus, {
-                type: 'doughnut',
-                data: getStatusChartData(),
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
+    function populateServiceDropdown() {
+      const select = document.getElementById('clientService');
+      select.innerHTML = '';
+      if (services.length === 0) {
+        select.innerHTML = '<option value="">No services configured in Master</option>';
+        return;
+      }
+      services.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.name;
+        opt.innerText = `${s.name} (${s.code})`;
+        select.appendChild(opt);
+      });
+    }
 
-        function updateCharts() {
-            if(serviceChart && statusChart) {
-                serviceChart.data = getServiceChartData();
-                serviceChart.update();
-                statusChart.data = getStatusChartData();
-                statusChart.update();
-            }
-        }
+    // Client Operations
+    function saveClient(e) {
+      e.preventDefault();
+      const id = document.getElementById('clientId').value || Date.now().toString();
+      const newClient = {
+        id,
+        name: document.getElementById('clientName').value,
+        mobile: document.getElementById('clientMobile').value,
+        email: document.getElementById('clientEmail').value,
+        pan: document.getElementById('clientPAN').value,
+        folio: document.getElementById('clientFolio').value,
+        company: document.getElementById('clientCompany').value,
+        service: document.getElementById('clientService').value,
+        claim: parseFloat(document.getElementById('clientClaim').value) || 0,
+        charges: parseFloat(document.getElementById('clientCharges').value) || 0,
+        advance: parseFloat(document.getElementById('clientAdvance').value) || 0,
+        balance: parseFloat(document.getElementById('clientBalance').value) || 0,
+        status: document.getElementById('clientStatus').value,
+        followup: document.getElementById('clientFollowup').value,
+        notes: document.getElementById('clientNotes').value,
+      };
 
-        function getServiceChartData() {
-            const rtaCounts = { 'CAMS': 0, 'KFintech': 0, 'Link Intime': 0, 'Bigshare': 0 };
-            casesData.forEach(c => { if(rtaCounts[c.rta] !== undefined) rtaCounts[c.rta]++; });
+      const existingIndex = clients.findIndex(c => c.id === id);
+      if (existingIndex > -1) {
+        clients[existingIndex] = newClient;
+      } else {
+        clients.unshift(newClient);
+      }
 
-            return {
-                labels: Object.keys(rtaCounts),
-                datasets: [{
-                    label: 'Cases per RTA',
-                    data: Object.values(rtaCounts),
-                    backgroundColor: ['#2563eb', '#4f46e5', '#0891b2', '#059669']
-                }]
-            };
-        }
+      closeModal('clientModal');
+      refreshAll();
+    }
 
-        function getStatusChartData() {
-            const statusCounts = { 'Pending RTA': 0, 'In Progress': 0, 'Investor Action Required': 0, 'Resolved': 0 };
-            casesData.forEach(c => { if(statusCounts[c.status] !== undefined) statusCounts[c.status]++; });
+    function editClient(id) {
+      const c = clients.find(item => item.id === id);
+      if (!c) return;
 
-            return {
-                labels: Object.keys(statusCounts),
-                datasets: [{
-                    data: Object.values(statusCounts),
-                    backgroundColor: ['#d97706', '#2563eb', '#9333ea', '#059669']
-                }]
-            };
-        }
-    </script>
+      populateServiceDropdown();
+      document.getElementById('clientId').value = c.id;
+      document.getElementById('clientName').value = c.name;
+      document.getElementById('clientMobile').value = c.mobile;
+      document.getElementById('clientEmail').value = c.email || '';
+      document.getElementById('clientPAN').value = c.pan || '';
+      document.getElementById('clientFolio').value = c.folio;
+      document.getElementById('clientCompany').value = c.company;
+      document.getElementById('clientService').value = c.service;
+      document.getElementById('clientClaim').value = c.claim;
+      document.getElementById('clientCharges').value = c.charges;
+      document.getElementById('clientAdvance').value = c.advance;
+      document.getElementById('clientBalance').value = c.balance;
+      document.getElementById('clientStatus').value = c.status;
+      document.getElementById('clientFollowup').value = c.followup;
+      document.getElementById('clientNotes').value = c.notes || '';
 
-<!-- Header Controls HTML Example modification to add Sample Data load / Clear option -->
+      document.getElementById('clientModalTitle').innerText = 'Edit Client Case';
+      document.getElementById('clientModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function deleteClient(id) {
+      if (confirm('Are you sure you want to delete this client case record?')) {
+        clients = clients.filter(c => c.id !== id);
+        refreshAll();
+      }
+    }
+
+    // Service Operations
+    function saveService(e) {
+      e.preventDefault();
+      const id = document.getElementById('serviceId').value || Date.now().toString();
+      const newSvc = {
+        id,
+        code: document.getElementById('serviceCode').value.toUpperCase(),
+        name: document.getElementById('serviceName').value,
+        tat: parseInt(document.getElementById('serviceTat').value) || 30,
+        fee: parseFloat(document.getElementById('serviceFee').value) || 0
+      };
+
+      const idx = services.findIndex(s => s.id === id);
+      if (idx > -1) {
+        services[idx] = newSvc;
+      } else {
+        services.push(newSvc);
+      }
+
+      closeModal('serviceModal');
+      refreshAll();
+    }
+
+    function editService(id) {
+      const s = services.find(item => item.id === id);
+      if (!s) return;
+
+      document.getElementById('serviceId').value = s.id;
+      document.getElementById('serviceCode').value = s.code;
+      document.getElementById('serviceName').value = s.name;
+      document.getElementById('serviceTat').value = s.tat;
+      document.getElementById('serviceFee').value = s.fee;
+
+      document.getElementById('serviceModalTitle').innerText = 'Edit Service Item';
+      document.getElementById('serviceModal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function deleteService(id) {
+      if (confirm('Are you sure you want to remove this service from Master?')) {
+        services = services.filter(s => s.id !== id);
+        refreshAll();
+      }
+    }
+
+    function moveServiceUp(idx) {
+      if (idx <= 0) return;
+      const temp = services[idx];
+      services[idx] = services[idx - 1];
+      services[idx - 1] = temp;
+      renderServicesTable();
+    }
+
+    function moveServiceDown(idx) {
+      if (idx >= services.length - 1) return;
+      const temp = services[idx];
+      services[idx] = services[idx + 1];
+      services[idx + 1] = temp;
+      renderServicesTable();
+    }
+
+    // User Operations
+    function saveUser(e) {
+      e.preventDefault();
+      const id = document.getElementById('userId').value || Date.now().toString();
+      const newUser = {
+        id,
+        name: document.getElementById('userFullName').value,
+        username: document.getElementById('userUsername').value,
+        role: document.getElementById('userRole').value,
+        active: true
+      };
+
+      const idx = users.findIndex(u => u.id === id);
+      if (idx > -1) {
+        users[idx] = newUser;
+      } else {
+        users.push(newUser);
+      }
+
+      closeModal('userModal');
+      renderUsersTable();
+    }
+
+    function deleteUser(id) {
+      if (confirm('Remove user access?')) {
+        users = users.filter(u => u.id !== id);
+        renderUsersTable();
+      }
+    }
+
+    // UI Renderers
+    function refreshAll() {
+      renderDashboard();
+      renderClientsTable();
+      renderServicesTable();
+      renderUsersTable();
+      populateReportServiceOptions();
+    }
+
+    function renderDashboard() {
+      const total = clients.length;
+      const pending = clients.filter(c => c.status === 'Pending' || c.status === 'In Process').length;
+      const completed = clients.filter(c => c.status === 'Completed').length;
+      
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayFollow = clients.filter(c => c.followup === todayStr).length;
+      const overdue = clients.filter(c => c.followup < todayStr && c.status !== 'Completed').length;
+
+      const totalAdv = clients.reduce((sum, c) => sum + (c.advance || 0), 0);
+      const totalBal = clients.reduce((sum, c) => sum + (c.balance || 0), 0);
+
+      document.getElementById('statTotalClients').innerText = total;
+      document.getElementById('statPendingCases').innerText = pending;
+      document.getElementById('statCompletedCases').innerText = completed;
+      document.getElementById('statTodayFollowups').innerText = todayFollow;
+      document.getElementById('statOverdueCases').innerText = overdue;
+
+      document.getElementById('statAdvanceReceived').innerText = `₹${totalAdv.toLocaleString('en-IN')}`;
+      document.getElementById('statBalancePending').innerText = `₹${totalBal.toLocaleString('en-IN')}`;
+
+      // Follow-up Table
+      const followupTable = document.getElementById('dashboardFollowupTable');
+      const urgentCases = clients.filter(c => c.followup <= todayStr && c.status !== 'Completed')
+                                 .sort((a,b) => new Date(a.followup) - new Date(b.followup));
+
+      if (urgentCases.length === 0) {
+        followupTable.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400">No scheduled follow-ups or overdue alerts for today.</td></tr>`;
+      } else {
+        followupTable.innerHTML = urgentCases.map(c => {
+          const isOverdue = c.followup < todayStr;
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="p-2.5 font-semibold text-slate-900">${escapeHtml(c.name)}</td>
+              <td class="p-2.5 text-slate-600">${escapeHtml(c.service)}</td>
+              <td class="p-2.5 ${isOverdue ? 'text-rose-600 font-bold' : 'text-sky-600 font-semibold'}">
+                ${c.followup} ${isOverdue ? '<span class="text-[9px] bg-rose-100 px-1 py-0.5 rounded text-rose-700 ml-1">OVERDUE</span>' : ''}
+              </td>
+              <td class="p-2.5">${getStatusBadge(c.status)}</td>
+              <td class="p-2.5">
+                <button onclick="editClient('${c.id}')" class="text-sky-600 hover:text-sky-800 font-semibold text-[11px]">Update Case</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    function renderClientsTable() {
+      const search = document.getElementById('clientSearch').value.toLowerCase();
+      const statusFilter = document.getElementById('clientStatusFilter').value;
+
+      const filtered = clients.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(search) || 
+                              c.folio.toLowerCase().includes(search) || 
+                              c.company.toLowerCase().includes(search);
+        const matchesStatus = statusFilter === 'ALL' || c.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+
+      const tbody = document.getElementById('clientsTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-slate-400">No client cases found in database. Click "New Client Case" to register one.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3">
+            <p class="font-bold text-slate-900">${escapeHtml(c.name)}</p>
+            <p class="text-[11px] text-slate-400">${c.mobile} | PAN: ${c.pan || 'N/A'}</p>
+          </td>
+          <td class="p-3">
+            <p class="font-semibold text-slate-700">${escapeHtml(c.folio)}</p>
+            <p class="text-[11px] text-slate-400">${escapeHtml(c.company)}</p>
+          </td>
+          <td class="p-3 font-medium text-slate-700">${escapeHtml(c.service)}</td>
+          <td class="p-3">
+            <p class="font-semibold text-slate-900">₹${c.charges.toLocaleString('en-IN')}</p>
+            <p class="text-[10px] ${c.balance > 0 ? 'text-amber-600' : 'text-emerald-600'}">Bal: ₹${c.balance.toLocaleString('en-IN')}</p>
+          </td>
+          <td class="p-3 font-medium text-sky-700">${c.followup}</td>
+          <td class="p-3">${getStatusBadge(c.status)}</td>
+          <td class="p-3 text-right space-x-2">
+            <button onclick="editClient('${c.id}')" class="text-slate-500 hover:text-sky-600 p-1" title="Edit Case"><i data-lucide="edit" class="w-4 h-4 inline"></i></button>
+            <button onclick="deleteClient('${c.id}')" class="text-slate-500 hover:text-rose-600 p-1" title="Delete Case"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+          </td>
+        </tr>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderServicesTable() {
+      const tbody = document.getElementById('servicesTableBody');
+      if (services.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-slate-400">No services defined. Click "Add Service" to configure custom RTA services.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = services.map((s, idx) => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 text-center">
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="moveServiceUp(${idx})" class="p-1 hover:bg-slate-200 rounded text-slate-500 ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}"><i data-lucide="chevron-up" class="w-3.5 h-3.5"></i></button>
+              <button onclick="moveServiceDown(${idx})" class="p-1 hover:bg-slate-200 rounded text-slate-500 ${idx === services.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+            </div>
+          </td>
+          <td class="p-3 font-mono font-bold text-sky-700">${s.code}</td>
+          <td class="p-3 font-semibold text-slate-800">${escapeHtml(s.name)}</td>
+          <td class="p-3 text-slate-600">${s.tat} Days</td>
+          <td class="p-3 font-semibold text-slate-900">₹${s.fee.toLocaleString('en-IN')}</td>
+          <td class="p-3 text-right space-x-2">
+            <button onclick="editService('${s.id}')" class="text-slate-500 hover:text-sky-600 p-1"><i data-lucide="edit" class="w-4 h-4 inline"></i></button>
+            <button onclick="deleteService('${s.id}')" class="text-slate-500 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>
+          </td>
+        </tr>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderUsersTable() {
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = users.map(u => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-bold text-slate-900">${escapeHtml(u.name)}</td>
+          <td class="p-3 text-slate-600 font-mono">${escapeHtml(u.username)}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.role === 'Admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}">${u.role}</span></td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700">Active</span></td>
+          <td class="p-3 text-right">
+            ${u.username !== 'admin' ? `<button onclick="deleteUser('${u.id}')" class="text-slate-400 hover:text-rose-600 p-1"><i data-lucide="trash-2" class="w-4 h-4 inline"></i></button>` : '<span class="text-[10px] text-slate-400 font-italic">System User</span>'}
+          </td>
+        </tr>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function populateReportServiceOptions() {
+      const sel = document.getElementById('reportServiceFilter');
+      sel.innerHTML = '<option value="ALL">All Services</option>';
+      services.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.name;
+        opt.innerText = s.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    // Reports & Exports
+    function generateReport() {
+      const status = document.getElementById('reportStatusFilter').value;
+      const service = document.getElementById('reportServiceFilter').value;
+      const start = document.getElementById('reportStartDate').value;
+      const end = document.getElementById('reportEndDate').value;
+
+      const filtered = clients.filter(c => {
+        const matchStatus = status === 'ALL' || c.status === status;
+        const matchService = service === 'ALL' || c.service === service;
+        const matchStart = !start || c.followup >= start;
+        const matchEnd = !end || c.followup <= end;
+        return matchStatus && matchService && matchStart && matchEnd;
+      });
+
+      const tbody = document.getElementById('reportTableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" class="text-center py-8 text-slate-400">No cases match the selected audit filter criteria.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((c, i) => `
+        <tr>
+          <td class="p-2 border border-slate-200">${i + 1}</td>
+          <td class="p-2 border border-slate-200 font-bold">${escapeHtml(c.name)}</td>
+          <td class="p-2 border border-slate-200">${c.mobile}</td>
+          <td class="p-2 border border-slate-200 font-mono">${escapeHtml(c.folio)}</td>
+          <td class="p-2 border border-slate-200">${escapeHtml(c.company)}</td>
+          <td class="p-2 border border-slate-200">${escapeHtml(c.service)}</td>
+          <td class="p-2 border border-slate-200">₹${c.claim.toLocaleString('en-IN')}</td>
+          <td class="p-2 border border-slate-200">₹${c.charges.toLocaleString('en-IN')}</td>
+          <td class="p-2 border border-slate-200">₹${c.advance.toLocaleString('en-IN')}</td>
+          <td class="p-2 border border-slate-200">₹${c.balance.toLocaleString('en-IN')}</td>
+          <td class="p-2 border border-slate-200">${c.status}</td>
+          <td class="p-2 border border-slate-200">${c.followup}</td>
+        </tr>
+      `).join('');
+    }
+
+    function exportToExcel() {
+      const table = document.getElementById('reportPrintArea').querySelector('table');
+      const wb = XLSX.utils.table_to_book(table, { sheet: "RTA Audit Report" });
+      XLSX.writeFile(wb, `Vellore_Finserv_RTA_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+    }
+
+    function exportToPDF() {
+      window.print();
+    }
+
+    // Utilities
+    function getStatusBadge(status) {
+      const styles = {
+        'Pending': 'bg-amber-50 text-amber-700 border-amber-200',
+        'In Process': 'bg-sky-50 text-sky-700 border-sky-200',
+        'Completed': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+        'Rejected': 'bg-rose-50 text-rose-700 border-rose-200'
+      };
+      return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${styles[status] || 'bg-slate-100 text-slate-600'}">${status}</span>`;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>

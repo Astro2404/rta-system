@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTA Follow-Up Management System</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Sortable.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+    <!-- App Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid me-2 fa-building-columns text-blue-500 text-2xl"></i>
+            <h1 class="text-xl font-bold tracking-tight text-white">RTA Case & Follow-Up Manager</h1>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span id="role-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-900 text-blue-200 border border-blue-700">
+                Admin Role
+            </span>
+            <button onclick="toggleRole()" class="px-3 py-1.5 text-xs font-medium bg-slate-700 hover:bg-slate-600 rounded-md transition-colors border border-slate-600">
+                Switch Role
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-800/50 border-r border-slate-700 p-4 space-y-2 flex-shrink-0">
+            <nav id="sidebar-nav" class="space-y-1">
+                <a href="#dashboard" onclick="showTab('dashboard')" class="nav-item active flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-chart-line w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#cases" onclick="showTab('cases')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-folder-open w-5"></i>
+                    <span>Client Cases</span>
+                </a>
+                <a href="#new-case" onclick="showTab('new-case')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-user-plus w-5"></i>
+                    <span>New Client Case</span>
+                </a>
+                <a href="#services" onclick="showTab('services')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-list-check w-5"></i>
+                    <span>Service Master</span>
+                </a>
+                <a href="#storage" onclick="showTab('storage')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-server w-5"></i>
+                    <span>NAS Document Vault</span>
+                </a>
+                <a href="#reminders" onclick="showTab('reminders')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-clock w-5"></i>
+                    <span>Follow-Ups</span>
+                </a>
+                <a href="#reports" onclick="showTab('reports')" class="nav-item flex items-center space-x-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-file-invoice-dollar w-5"></i>
+                    <span>Reports & Export</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-6 bg-slate-900">
+            
+            <!-- SECTION 1: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content active space-y-6">
+                <!-- Summary Metrics Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div class="stat-card">
+                        <div class="stat-title">Total Clients</div>
+                        <div class="stat-value text-blue-400" id="stat-total">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Pending Cases</div>
+                        <div class="stat-value text-yellow-400" id="stat-pending">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Completed Cases</div>
+                        <div class="stat-value text-green-400" id="stat-completed">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Today's Follow-ups</div>
+                        <div class="stat-value text-indigo-400" id="stat-today">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Overdue Cases</div>
+                        <div class="stat-value text-red-400" id="stat-overdue">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Monthly Revenue</div>
+                        <div class="stat-value text-emerald-400" id="stat-income">₹0</div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card p-5">
+                        <h3 class="card-title"><i class="fa-solid fa-chart-pie mr-2 text-blue-400"></i>Cases by Status</h3>
+                        <div class="h-64 flex justify-center items-center">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card p-5">
+                        <h3 class="card-title"><i class="fa-solid fa-chart-bar mr-2 text-blue-400"></i>Top Services Demanded</h3>
+                        <div class="h-64 flex justify-center items-center">
+                            <canvas id="servicesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: NEW CASE ENTRY FORM -->
+            <section id="tab-new-case" class="tab-content hidden space-y-6">
+                <div class="card p-6">
+                    <h2 class="card-title text-xl mb-6"><i class="fa-solid fa-user-plus mr-2 text-blue-400"></i>Register New Client Case</h2>
+                    <form id="new-case-form" onsubmit="handleCaseSubmit(event)" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="form-label">Client Name</label>
+                            <input type="text" id="clientName" required class="input-field" placeholder="Full legal name">
+                        </div>
+                        <div>
+                            <label class="form-label">Mobile Number</label>
+                            <input type="tel" id="mobileNumber" required class="input-field" placeholder="10-digit phone number">
+                        </div>
+                        <div>
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="email" class="input-field" placeholder="client@example.com">
+                        </div>
+                        <div>
+                            <label class="form-label">PAN Number</label>
+                            <input type="text" id="panNumber" required class="input-field uppercase" placeholder="ABCDE1234F">
+                        </div>
+                        <div>
+                            <label class="form-label">Aadhaar Number (12 Digits)</label>
+                            <input type="password" id="aadhaarNumber" maxlength="12" class="input-field" placeholder="•••• •••• ••••">
+                        </div>
+                        <div>
+                            <label class="form-label">Folio / DP ID Number</label>
+                            <input type="text" id="folioNumber" required class="input-field" placeholder="e.g. C00001234">
+                        </div>
+                        <div>
+                            <label class="form-label">Company Name</label>
+                            <input type="text" id="companyName" required class="input-field" placeholder="e.g. Reliance Industries Ltd">
+                        </div>
+                        <div>
+                            <label class="form-label">Service Type</label>
+                            <select id="serviceType" required class="input-field bg-slate-800">
+                                <option value="">Select Service...</option>
+                                <option value="Transmission (Death Case)">Transmission (Death Case)</option>
+                                <option value="Duplicate Share Certificate">Duplicate Share Certificate</option>
+                                <option value="IEPF Claim">IEPF Claim</option>
+                                <option value="Physical to Demat">Physical to Demat</option>
+                                <option value="Dividend Revalidation">Dividend Revalidation</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Claim Amount (₹)</label>
+                            <input type="number" id="claimAmount" class="input-field" placeholder="Estimated value">
+                        </div>
+                        <div>
+                            <label class="form-label">Service Charges (₹)</label>
+                            <input type="number" id="serviceCharges" oninput="calculateBalance()" class="input-field" placeholder="Agreed fee">
+                        </div>
+                        <div>
+                            <label class="form-label">Advance Received (₹)</label>
+                            <input type="number" id="advanceReceived" oninput="calculateBalance()" class="input-field" placeholder="Amount paid upfront">
+                        </div>
+                        <div>
+                            <label class="form-label">Balance Pending (₹)</label>
+                            <input type="number" id="balancePending" readonly class="input-field bg-slate-950 font-bold text-yellow-400">
+                        </div>
+                        <div>
+                            <label class="form-label">Case Status</label>
+                            <select id="caseStatus" class="input-field bg-slate-800">
+                                <option value="Pending">Pending</option>
+                                <option value="In Process">In Process</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Next Follow-up Date</label>
+                            <input type="date" id="nextFollowUpDate" required class="input-field">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="form-label">Notes & Case Remarks</label>
+                            <textarea id="notes" rows="3" class="input-field" placeholder="Enter follow-up instructions or specific document status..."></textarea>
+                        </div>
+                        <div class="md:col-span-3">
+                            <button type="submit" class="btn-primary w-full md:w-auto px-8 py-3 rounded-lg font-semibold bg-blue-600 hover:bg-blue-500 transition-colors">
+                                <i class="fa-solid fa-save mr-2"></i>Save Client Case
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- SECTION 3: CASES MANAGEMENT LIST -->
+            <section id="tab-cases" class="tab-content hidden space-y-6">
+                <div class="card p-6">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <h2 class="card-title text-xl"><i class="fa-solid fa-folder-open mr-2 text-blue-400"></i>Active Client Cases</h2>
+                        <input type="text" id="caseSearch" onkeyup="filterCases()" placeholder="Search client name, folio, or PAN..." class="input-field md:w-72">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-800 border-b border-slate-700 text-slate-400 uppercase text-xs">
+                                <tr>
+                                    <th class="p-3">Client Name</th>
+                                    <th class="p-3">Company</th>
+                                    <th class="p-3">Folio</th>
+                                    <th class="p-3">Service</th>
+                                    <th class="p-3">Balance</th>
+                                    <th class="p-3">Next Follow-up</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cases-table-body" class="divide-y divide-slate-800">
+                                <!-- Dynamic rows generated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: SERVICE MASTER -->
+            <section id="tab-services" class="tab-content hidden space-y-6">
+                <div class="card p-6">
+                    <h2 class="card-title text-xl mb-4"><i class="fa-solid fa-list-check mr-2 text-blue-400"></i>RTA Services Master Catalog</h2>
+                    <ul id="service-list" class="space-y-2">
+                        <!-- Services dynamically injected here -->
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 5: NAS STORAGE CENTER -->
+            <section id="tab-storage" class="tab-content hidden space-y-6">
+                <div class="card p-6">
+                    <h2 class="card-title text-xl mb-4"><i class="fa-solid fa-server mr-2 text-blue-400"></i>TrueNAS Document Storage Vault</h2>
+                    <p class="text-slate-400 text-sm mb-4">Storage Directory: <code class="bg-slate-950 px-2 py-1 text-blue-300 rounded">/mnt/rta_storage/Clients/</code></p>
+                    <div class="p-4 bg-slate-950 rounded-lg font-mono text-sm text-green-400" id="nas-tree-view">
+                        <!-- NAS Simulated Directory Tree -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: REMINDERS & FOLLOW-UPS -->
+            <section id="tab-reminders" class="tab-content hidden space-y-6">
+                <div class="card p-6">
+                    <h2 class="card-title text-xl mb-4"><i class="fa-solid fa-clock mr-2 text-blue-400"></i>Follow-Up Schedule & Alerts</h2>
+                    <div id="reminders-list" class="space-y-3">
+                        <!-- Reminders injected dynamically -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: REPORTS & EXPORTS -->
+            <section id="tab-reports" class="tab-content hidden space-y-6">
+                <div class="card p-6">
+                    <h2 class="card-title text-xl mb-6"><i class="fa-solid fa-file-invoice-dollar mr-2 text-blue-400"></i>Reports & Data Export</h2>
+                    <div class="flex space-x-4 mb-6">
+                        <button onclick="exportToCSV()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-semibold transition-colors">
+                            <i class="fa-solid fa-file-excel mr-2"></i>Export to CSV
+                        </button>
+                        <button onclick="window.print()" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-colors">
+                            <i class="fa-solid fa-print mr-2"></i>Print Summary Report
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- App Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>

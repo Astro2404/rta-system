@@ -1,24 +1,6 @@
-// Application State & Storage
-let cases = JSON.parse(localStorage.getItem('rta_cases')) || [
-    {
-        id: "RTA-101",
-        clientName: "Rajesh Sharma",
-        mobileNumber: "9876543210",
-        email: "rajesh@example.com",
-        panNumber: "ABCDE1234F",
-        aadhaarNumber: "", 
-        folioNumber: "R00039201",
-        companyName: "Reliance Industries Ltd",
-        serviceType: "Transmission (Death Case)",
-        claimAmount: 450000,
-        serviceCharges: 15000,
-        advanceReceived: 5000,
-        balancePending: 10000,
-        caseStatus: "In Process",
-        nextFollowUpDate: new Date().toISOString().split('T')[0],
-        notes: "Awaiting original death certificate verification."
-    }
-];
+// Application State & Storage - INITIALIZED AS EMPTY
+localStorage.removeItem('rta_cases'); // Clear any previously stored sample cases
+let cases = [];
 
 let services = [
     "Transmission (Death Case)",
@@ -31,6 +13,8 @@ let services = [
 ];
 
 let currentUserRole = "Admin";
+let statusChartInstance = null;
+let servicesChartInstance = null;
 
 // Initialization
 document.addEventListener("DOMContentLoaded", () => {
@@ -48,7 +32,10 @@ function showTab(tabId) {
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
 
     document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-    event.currentTarget.classList.add('active');
+    
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
 }
 
 // Role Switcher
@@ -95,6 +82,8 @@ function handleCaseSubmit(e) {
     updateDashboard();
     renderCases();
     renderNasTree();
+    renderReminders();
+    updateCharts();
     showTab('cases');
 }
 
@@ -115,6 +104,17 @@ function updateDashboard() {
 // Render Case Table
 function renderCases() {
     const tbody = document.getElementById('cases-table-body');
+    if (cases.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="p-8 text-center text-slate-500">
+                    <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
+                    No cases registered yet. Go to "New Client Case" to add one.
+                </td>
+            </tr>`;
+        return;
+    }
+
     tbody.innerHTML = cases.map(c => `
         <tr class="hover:bg-slate-800/50 transition-colors">
             <td class="p-3 font-semibold text-white">${c.clientName}</td>
@@ -129,7 +129,7 @@ function renderCases() {
                 </span>
             </td>
             <td class="p-3">
-                <button onclick="deleteCase('${c.id}')" class="text-red-400 hover:text-red-300">
+                <button onclick="deleteCase('${c.id}')" class="text-red-400 hover:text-red-300" title="Delete Case">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </td>
@@ -155,6 +155,19 @@ function deleteCase(id) {
     localStorage.setItem('rta_cases', JSON.stringify(cases));
     renderCases();
     updateDashboard();
+    renderNasTree();
+    renderReminders();
+    updateCharts();
+}
+
+// Filter Cases
+function filterCases() {
+    const query = document.getElementById('caseSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#cases-table-body tr');
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+    });
 }
 
 // Services Render
@@ -167,14 +180,20 @@ function renderServices() {
         </li>
     `).join('');
 
-    new Sortable(list, { animation: 150 });
+    if (typeof Sortable !== 'undefined') {
+        new Sortable(list, { animation: 150 });
+    }
 }
 
 // TrueNAS Storage View
 function renderNasTree() {
     const tree = document.getElementById('nas-tree-view');
+    if (cases.length === 0) {
+        tree.innerHTML = `<div class="text-slate-500 font-sans">No client folders created yet.</div>`;
+        return;
+    }
     tree.innerHTML = cases.map(c => `
-        <div class="mb-2">
+        <div class="mb-3">
             <div>📂 /Clients/${c.clientName.replace(/\s+/g, '_')}_${c.folioNumber}/</div>
             <div class="pl-6 text-slate-400">📄 PAN.pdf</div>
             <div class="pl-6 text-slate-400">📄 Aadhaar.pdf</div>
@@ -186,6 +205,10 @@ function renderNasTree() {
 // Render Reminders
 function renderReminders() {
     const list = document.getElementById('reminders-list');
+    if (cases.length === 0) {
+        list.innerHTML = `<div class="p-6 text-center text-slate-500 bg-slate-950 rounded-lg">No follow-ups scheduled.</div>`;
+        return;
+    }
     list.innerHTML = cases.map(c => `
         <div class="p-4 bg-slate-950 border-l-4 border-blue-500 rounded-r-lg flex justify-between items-center">
             <div>
@@ -202,40 +225,64 @@ function renderReminders() {
 // Chart Initializer
 function initCharts() {
     const ctx1 = document.getElementById('statusChart').getContext('2d');
-    new Chart(ctx1, {
+    statusChartInstance = new Chart(ctx1, {
         type: 'doughnut',
-        data: {
-            labels: ['Pending', 'In Process', 'Completed', 'Rejected'],
-            datasets: [{
-                data: [
-                    cases.filter(c => c.caseStatus === 'Pending').length,
-                    cases.filter(c => c.caseStatus === 'In Process').length,
-                    cases.filter(c => c.caseStatus === 'Completed').length,
-                    cases.filter(c => c.caseStatus === 'Rejected').length
-                ],
-                backgroundColor: ['#eab308', '#3b82f6', '#22c55e', '#ef4444']
-            }]
-        },
+        data: getStatusChartData(),
         options: { responsive: true, maintainAspectRatio: false }
     });
 
     const ctx2 = document.getElementById('servicesChart').getContext('2d');
-    new Chart(ctx2, {
+    servicesChartInstance = new Chart(ctx2, {
         type: 'bar',
-        data: {
-            labels: ['Transmission', 'Duplicate Cert', 'IEPF Claim', 'Physical to Demat'],
-            datasets: [{
-                label: 'Active Cases',
-                data: [12, 8, 15, 5],
-                backgroundColor: '#3b82f6'
-            }]
-        },
+        data: getServicesChartData(),
         options: { responsive: true, maintainAspectRatio: false }
     });
 }
 
+function updateCharts() {
+    if (statusChartInstance) {
+        statusChartInstance.data = getStatusChartData();
+        statusChartInstance.update();
+    }
+    if (servicesChartInstance) {
+        servicesChartInstance.data = getServicesChartData();
+        servicesChartInstance.update();
+    }
+}
+
+function getStatusChartData() {
+    return {
+        labels: ['Pending', 'In Process', 'Completed', 'Rejected'],
+        datasets: [{
+            data: [
+                cases.filter(c => c.caseStatus === 'Pending').length,
+                cases.filter(c => c.caseStatus === 'In Process').length,
+                cases.filter(c => c.caseStatus === 'Completed').length,
+                cases.filter(c => c.caseStatus === 'Rejected').length
+            ],
+            backgroundColor: ['#eab308', '#3b82f6', '#22c55e', '#ef4444']
+        }]
+    };
+}
+
+function getServicesChartData() {
+    const serviceCounts = services.map(s => cases.filter(c => c.serviceType === s).length);
+    return {
+        labels: services.map(s => s.length > 15 ? s.substring(0, 15) + '...' : s),
+        datasets: [{
+            label: 'Active Cases',
+            data: serviceCounts,
+            backgroundColor: '#3b82f6'
+        }]
+    };
+}
+
 // CSV Export Engine
 function exportToCSV() {
+    if (cases.length === 0) {
+        alert("No cases available to export.");
+        return;
+    }
     let csvContent = "data:text/csv;charset=utf-8,Client Name,Company,Folio,Service,Status,Balance Pending\n";
     cases.forEach(c => {
         csvContent += `"${c.clientName}","${c.companyName}","${c.folioNumber}","${c.serviceType}","${c.caseStatus}","${c.balancePending}"\n`;

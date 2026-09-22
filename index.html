@@ -1,901 +1,844 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vellore Finserv Service - RTA Follow-Up & Portfolio System</title>
-  <style>
-    :root {
-      --primary: #1e3a8a;
-      --primary-light: #2563eb;
-      --secondary: #0f766e;
-      --accent: #f59e0b;
-      --danger: #ef4444;
-      --success: #10b981;
-      --bg-slate: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --border-color: #cbd5e1;
-      --radius: 8px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-slate);
-      color: var(--text-main);
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    /* Top Navigation Header */
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-    }
-
-    .brand-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-logo-svg {
-      height: 42px;
-      width: auto;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .btn {
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius);
-      border: none;
-      font-weight: 600;
-      font-size: 0.875rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
-    }
-
-    .btn-primary {
-      background-color: var(--primary-light);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background-color: #1d4ed8;
-    }
-
-    .btn-secondary {
-      background-color: white;
-      color: var(--primary);
-      border: 1px solid var(--border-color);
-    }
-
-    .btn-secondary:hover {
-      background-color: #f1f5f9;
-    }
-
-    .btn-outline-light {
-      background: transparent;
-      color: white;
-      border: 1px solid #93c5fd;
-    }
-
-    .btn-outline-light:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .btn-export {
-      background-color: #059669;
-      color: white;
-    }
-
-    .btn-export:hover {
-      background-color: #047857;
-    }
-
-    /* Auth Screen Overlay */
-    .auth-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #0f172a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    .auth-card {
-      background: white;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 440px;
-      padding: 2.5rem;
-      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-      text-align: center;
-    }
-
-    .auth-title {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 0.5rem;
-    }
-
-    .auth-subtitle {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-    }
-
-    .google-btn {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      background: white;
-      color: #334155;
-      font-weight: 600;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 1.25rem;
-    }
-
-    .google-btn:hover {
-      background: #f8fafc;
-    }
-
-    .divider {
-      display: flex;
-      align-items: center;
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      margin: 1rem 0;
-    }
-
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .divider::before { margin-right: .5em; }
-    .divider::after { margin-left: .5em; }
-
-    /* Main Workspace Layout */
-    main {
-      flex: 1;
-      padding: 2rem;
-      max-width: 1400px;
-      width: 100%;
-      margin: 0 auto;
-    }
-
-    .auth-status-bar {
-      background: #e0f2fe;
-      border: 1px solid #bae6fd;
-      color: #0369a1;
-      padding: 0.75rem 1.25rem;
-      border-radius: var(--radius);
-      margin-bottom: 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.875rem;
-    }
-
-    .dashboard-metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 2rem;
-    }
-
-    .metric-card {
-      background: var(--card-bg);
-      padding: 1.25rem;
-      border-radius: var(--radius);
-      border: 1px solid var(--border-color);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .metric-title {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .metric-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .section-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      border: 1px solid var(--border-color);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      overflow: hidden;
-      margin-bottom: 2rem;
-    }
-
-    .section-header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fafafa;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--primary);
-    }
-
-    .filter-bar {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .input-search, .select-filter {
-      padding: 0.45rem 0.8rem;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      font-size: 0.875rem;
-      outline: none;
-    }
-
-    .table-responsive {
-      width: 100%;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 0.9rem;
-    }
-
-    th {
-      background-color: #f1f5f9;
-      color: var(--text-muted);
-      font-weight: 600;
-      padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    td {
-      padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    tr:hover {
-      background-color: #f8fafc;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 0.25rem 0.6rem;
-      border-radius: 50px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .badge-pending { background: #fef3c7; color: #92400e; }
-    .badge-in-progress { background: #dbeafe; color: #1e40af; }
-    .badge-resolved { background: #d1fae5; color: #065f46; }
-    .badge-overdue { background: #fee2e2; color: #991b1b; }
-
-    .empty-state {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--text-muted);
-    }
-
-    .empty-state svg {
-      width: 60px;
-      height: 60px;
-      margin-bottom: 1rem;
-      fill: #cbd5e1;
-    }
-
-    /* Modals */
-    .modal-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(15, 23, 42, 0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal {
-      background: white;
-      border-radius: var(--radius);
-      width: 100%;
-      max-width: 650px;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-
-    .modal-header {
-      padding: 1.25rem 1.5rem;
-      background: var(--primary);
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .modal-body {
-      padding: 1.5rem;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-      color: var(--text-main);
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 0.53rem 0.75rem;
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      font-size: 0.9rem;
-      outline: none;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .modal-footer {
-      padding: 1rem 1.5rem;
-      background: #f8fafc;
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.75rem;
-    }
-
-    .checkbox-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.875rem;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1.5rem;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      border-top: 1px solid var(--border-color);
-      background: white;
-      margin-top: auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vellore Finserv Service - RTA & Financial Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
 
-  <!-- Authentication Modal / Screen (JWT & Emergent Google Social Login) -->
-  <div class="auth-overlay" id="authOverlay">
-    <div class="auth-card">
-      <svg class="brand-logo-svg" viewBox="0 0 260 50" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 1rem;">
-        <rect width="46" height="46" x="2" y="2" rx="10" fill="#1E3A8A"/>
-        <path d="M14 14 L24 36 L34 14" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <path d="M22 25 L36 25" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
-        <text x="60" y="28" fill="#1E3A8A" font-family="'Segoe UI', sans-serif" font-weight="700" font-size="20">VELLORE</text>
-        <text x="60" y="43" fill="#2563EB" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="12" letter-spacing="2">FINSERV SERVICE</text>
-      </svg>
+    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo & Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-1.5 rounded-lg shadow-sm flex items-center justify-center">
+                        
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight tracking-wide">Vellore Finserv Service</h1>
+                        <p class="text-xs text-blue-400 font-medium">RTA & Financial Services Portal</p>
+                    </div>
+                </div>
 
-      <div class="auth-title">System Access Login</div>
-      <div class="auth-subtitle">RTA Follow-Up & Portfolio Servicing Platform</div>
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex space-x-1">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white transition">
+                        <i class="fa-solid font-normal fa-chart-pie mr-1.5"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('cases')" id="nav-cases" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-folder-open mr-1.5"></i> Cases & Trackers
+                    </button>
+                    <button onclick="switchTab('followups')" id="nav-followups" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-clock-rotate-left mr-1.5"></i> Follow-Up Queue
+                    </button>
+                    <button onclick="switchTab('investors')" id="nav-investors" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                        <i class="fa-solid fa-users mr-1.5"></i> Investor Directory
+                    </button>
+                </nav>
 
-      <!-- Social Auth Button -->
-      <button class="google-btn" onclick="handleSocialAuth('Google')">
-        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.41-1.57-5.13-3.72L.97 13.01C2.47 15.98 5.5 18 9 18z"/><path fill="#FBBC05" d="M3.87 10.8c-.19-.53-.3-1.1-.3-1.8s.11-1.27.3-1.8L.97 4.99C.35 6.22 0 7.57 0 9s.35 2.78.97 4.01l2.9-2.21z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.5 0 2.47 2.02.97 4.99l2.9 2.21C4.59 5.05 6.62 3.58 9 3.58z"/></svg>
-        Sign in with Google (Emergent)
-      </button>
-
-      <div class="divider">or custom JWT authorization</div>
-
-      <form onsubmit="handleCustomJwtAuth(event)">
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label">Email Address</label>
-          <input type="email" id="loginEmail" class="form-control" placeholder="user@vellorefinserv.com" required>
+                <!-- Action Button -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="openNewCaseModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow flex items-center transition">
+                        <i class="fa-solid fa-plus mr-1.5"></i> New Request
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label">Password</label>
-          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="space-y-6">
+            <!-- Header Banner -->
+            <div class="bg-gradient-to-r from-blue-900 via-slate-800 to-indigo-900 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-center justify-between border border-blue-800/40">
+                <div class="flex items-center space-x-5 mb-4 md:mb-0">
+                    <div class="bg-white p-3 rounded-xl shadow">
+                        <img src="data:image/png;base64,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dIxDnVFfa4fh9olxQyO5xqpcomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIORjibRv/St8PZ21eYwga/D0KRxytSN8/CbpVnkMXT0MaXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAADNmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAJxqdW1iAAAAKGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaGFzaC5kYXRhAAAAAGxjYm9ypGpleGNsdXNpb25zgaJlc3RhcnQUZmxlbmd0aBkYymNhbGdmc2hhMjU2ZGhhc2hYILJo5J7LZfaMfKIf+tMTkhBbyeDyZzZbPoGZdfbDsbNfY3BhZE4AAAAAAAAAAAAAAAAAAAAAAfhqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAHHY2JvcqFnYWN0aW9uc4KkZmFjdGlvbmxjMnBhLmNyZWF0ZWRrZGVzY3JpcHRpb254IENyZWF0ZWQgYnkgR29vZ2xlIEdlbmVyYXRpdmUgQUkucWRpZ2l0YWxTb3VyY2VUeXBleEZodHRwOi8vY3YuaXB0Yy5vcmcvbmV3c2NvZGVzL2RpZ2l0YWxzb3VyY2V0eXBlL3RyYWluZWRBbGdvcml0aG1pY01lZGlhanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQ89BBSZ+7rzB0gQct1E1zC8AYWx4J+2IJ7n7zntYOZaiZmFjdGlvbmtjMnBhLmVkaXRlZGtkZXNjcmlwdGlvbngoQXBwbGllZCBpbXBlcmNlcHRpYmxlIFN5bnRoSUQgd2F0ZXJtYXJrLnFkaWdpdGFsU291cmNlVHlwZXhGaHR0cDovL2N2LmlwdGMub3JnL25ld3Njb2Rlcy9kaWdpdGFsc291cmNldHlwZS90cmFpbmVkQWxnb3JpdGhtaWNNZWRpYQAAAHFqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaW5ncmVkaWVudC52MwAAAAA9Y2JvcqJscmVsYXRpb25zaGlwZ2lucHV0VG9rZGVzY3JpcHRpb25ySW5wdXQgaW5ncmVkaWVudCAwAAAkTWp1bWIAAABHanVtZGMybWEAEQAQgAAAqgA4m3EDdXJuOmMycGE6NTY5Njg2ZjctYjZiMC04ZmQxLTJlYzQtNDkzZWZmYTEyYjYwAAAAGThqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAGQhjYm9y0oRZBiiiASYYIYJZAzwwggM4MIICv6ADAgECAhNUw+LJ+Ha8jE5m6TqZMqtESu4SMAoGCCqGSM49BAMDMFExCzAJBgNVBAYTAlVTMRMwEQYDVQQKDApHb29nbGUgTExDMS0wKwYDVQQDDCRHb29nbGUgQzJQQSBNZWRpYSBTZXJ2aWNlcyAxUCBJQ0EgRzMwHhcNMjYwNDE2MTQwMDQ1WhcNMjcwNDExMTQwMDQ0WjBrMQswCQYDVQQGEwJVUzETMBEGA1UEChMKR29vZ2xlIExMQzEcMBoGA1UECxMTR29vZ2xlIFN5c3RlbSA2NzE1NDEpMCcGA1UEAxMgR29vZ2xlIE1lZGlhIFByb2Nlc3NpbmcgU2VydmljZXMg0YP=" class="h-12 w-auto" alt="Vellore Finserv Logo">
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold">Vellore Finserv Operations Console</h2>
+                        <p class="text-blue-200 text-sm">Managing Registrar & Transfer Agent (RTA) requests, Investor Support & Compliance Follow-ups.</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <span class="bg-blue-800/80 px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-600 flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span> RTA Systems Sync: Active
+                    </span>
+                </div>
+            </div>
+
+            <!-- Stats Overview Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Active Cases</p>
+                            <h3 id="stat-total-cases" class="text-3xl font-bold text-slate-800 mt-1">0</h3>
+                        </div>
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                            <i class="fa-solid fa-folder text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-3"><span class="text-emerald-600 font-semibold"><i class="fa-solid fa-arrow-up"></i> +12%</span> from last month</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pending RTA Response</p>
+                            <h3 id="stat-pending-rta" class="text-3xl font-bold text-amber-600 mt-1">0</h3>
+                        </div>
+                        <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+                            <i class="fa-solid fa-hourglass-half text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-3"><span class="text-amber-600 font-semibold">Requires follow-up</span></p>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Overdue Follow-ups</p>
+                            <h3 id="stat-overdue" class="text-3xl font-bold text-rose-600 mt-1">0</h3>
+                        </div>
+                        <div class="p-3 bg-rose-50 text-rose-600 rounded-lg">
+                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-rose-600 font-medium mt-3"><i class="fa-solid fa-circle-exclamation"></i> High Priority</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Completed (This Month)</p>
+                            <h3 id="stat-completed" class="text-3xl font-bold text-emerald-600 mt-1">0</h3>
+                        </div>
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                            <i class="fa-solid fa-circle-check text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-3"><span class="text-emerald-600 font-semibold">94.2%</span> SLA Success rate</p>
+                </div>
+            </div>
+
+            <!-- Analytics Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 lg:col-span-2">
+                    <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center">
+                        <i class="fa-solid fa-chart-column text-blue-600 mr-2"></i> Case Breakdown by Service & RTA
+                    </h3>
+                    <div class="h-64">
+                        <canvas id="chart-service-breakdown"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center">
+                        <i class="fa-solid fa-chart-pie text-indigo-600 mr-2"></i> Status Distribution
+                    </h3>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="chart-status-distribution"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Follow-up Actions -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-800 flex items-center">
+                        <i class="fa-solid fa-list-check text-emerald-600 mr-2"></i> Urgent RTA Follow-Up Queue
+                    </h3>
+                    <button onclick="switchTab('followups')" class="text-sm font-semibold text-blue-600 hover:text-blue-800">View All Queue &rarr;</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-3">Case ID & Investor</th>
+                                <th class="px-6 py-3">Service Category</th>
+                                <th class="px-6 py-3">Assigned RTA</th>
+                                <th class="px-6 py-3">Next Follow-up</th>
+                                <th class="px-6 py-3">Status</th>
+                                <th class="px-6 py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-urgent-table" class="divide-y divide-slate-200">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-cases" class="hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Cases & Financial Trackers</h2>
+                    <p class="text-slate-500 text-sm">Comprehensive list of all registered investor service requests.</p>
+                </div>
+                <button onclick="openNewCaseModal()" class="bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm px-4 py-2 rounded-lg shadow flex items-center">
+                    <i class="fa-solid fa-plus mr-2"></i> Add New Case
+                </button>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto flex-1">
+                    <div class="relative flex-1 min-w-[200px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                        <input type="text" id="search-cases" oninput="renderCasesTable()" placeholder="Search investor, folio, PAN, case ID..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <select id="filter-rta" onchange="renderCasesTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="ALL">All RTAs</option>
+                        <option value="CAMS">CAMS</option>
+                        <option value="KFintech">KFintech</option>
+                        <option value="Link Intime">Link Intime</option>
+                        <option value="Bigshare">Bigshare</option>
+                    </select>
+                    <select id="filter-status" onchange="renderCasesTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="ALL">All Statuses</option>
+                        <option value="Pending RTA">Pending RTA</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Investor Action Required">Investor Action</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Cases Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200">
+                            <tr>
+                                <th class="px-6 py-3">Case Info</th>
+                                <th class="px-6 py-3">Investor & Folio</th>
+                                <th class="px-6 py-3">Service Request</th>
+                                <th class="px-6 py-3">RTA Partner</th>
+                                <th class="px-6 py-3">Last Update</th>
+                                <th class="px-6 py-3">Status</th>
+                                <th class="px-6 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cases-table-body" class="divide-y divide-slate-200">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-followups" class="hidden space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">RTA Follow-Up Queue</h2>
+                <p class="text-slate-500 text-sm">Track pending responses, schedule reminders, and log communications with RTAs.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Log Followup Form -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 h-fit">
+                    <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center">
+                        <i class="fa-solid fa-pen-to-square text-blue-600 mr-2"></i> Log Follow-Up Activity
+                    </h3>
+                    <form id="followup-form" onsubmit="handleLogFollowup(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Select Case</label>
+                            <select id="followup-case-id" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Communication Channel</label>
+                            <select id="followup-channel" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="Email">Email to RTA</option>
+                                <option value="Portal">RTA Online Portal Ticket</option>
+                                <option value="Phone">Phone Call to RTA Exec</option>
+                                <option value="In-Person">Physical Visit / Branch Submission</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Activity Notes / Response</label>
+                            <textarea id="followup-notes" rows="3" required placeholder="Enter conversation details, ticket reference, or next required action..." class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Next Follow-Up Date</label>
+                            <input type="date" id="followup-next-date" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded-lg text-sm transition">
+                            Log Activity & Update Queue
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Followup History Table -->
+                <div class="md:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div class="px-6 py-4 border-b border-slate-200">
+                        <h3 class="font-bold text-slate-800">Recent Follow-up Log History</h3>
+                    </div>
+                    <div class="overflow-x-auto custom-scrollbar flex-1 max-h-[500px]">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-500 border-b border-slate-200 sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-3">Date & Time</th>
+                                    <th class="px-6 py-3">Case ID</th>
+                                    <th class="px-6 py-3">Channel</th>
+                                    <th class="px-6 py-3">Notes</th>
+                                    <th class="px-6 py-3">Next Due</th>
+                                </tr>
+                            </thead>
+                            <tbody id="followup-history-table" class="divide-y divide-slate-200">
+                                <!-- Injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-investors" class="hidden space-y-6">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Investor Directory</h2>
+                <p class="text-slate-500 text-sm">Vellore Finserv client profile database and associated folio tracking.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="investors-grid">
+                <!-- Populated dynamically -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- New Request Modal -->
+    <div id="modal-new-case" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img src="data:image/png;base64,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_hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQ89BBSZ+7rzB0gQct1E1zC8AYWx4J+2IJ7n7zntYOZaiY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIFrEPjw6/2ISn+vBDv/WdIxDnVFfa4fh9olxQyO5xqpcomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIORjibRv/St8PZ21eYwga/D0KRxytSN8/CbpVnkMXT0MaXNpZ25hdHVyZXgZc2VsZiNqdW1iZj1jMnBhLnNpZ25hdHVyZWNhbGdmc2hhMjU2AAADNmp1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAAJxqdW1iAAAAKGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaGFzaC5kYXRhAAAAAGxjYm9ypGpleGNsdXNpb25zgaJlc3RhcnQUZmxlbmd0aBkYymNhbGdmc2hhMjU2ZGhhc2hYILJo5J7LZfaMfKIf+tMTkhBbyeDyZzZbPoGZdfbDsbNfY3BhZE4AAAAAAAAAAAAAAAAAAAAAAfhqdW1iAAAAKWp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuYWN0aW9ucy52MgAAAAHHY2JvcqFnYWN0aW9uc4KkZmFjdGlvbmxjMnBhLmNyZWF0ZWRrZGVzY3JpcHRpb254IENyZWF0ZWQgYnkgR29vZ2xlIEdlbmVyYXRpdmUgQUkucWRpZ2l0YWxTb3VyY2VUeXBleEZodHRwOi8vY3YuaXB0Yy5vcmcvbmV3c2NvZGVzL2RpZ2l0YWxzb3VyY2V0eXBlL3RyYWluZWRBbGdvcml0aG1pY01lZGlhanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQ89BBSZ+7rzB0gQct1E1zC8AYWx4J+2IJ7n7zntYOZaiZmFjdGlvbmtjMnBhLmVkaXRlZGtkZXNjcmlwdGlvbngoQXBwbGllZCBpbXBlcmNlcHRpYmxlIFN5bnRoSUQgd2F0ZXJtYXJrLnFkaWdpdGFsU291cmNlVHlwZXhGaHR0cDovL2N2LmlwdGMub3JnL25ld3Njb2Rlcy9kaWdpdGFsc291cmNldHlwZS90cmFpbmVkQWxnb3JpdGhtaWNNZWRpYQAAAHFqdW1iAAAALGp1bWRjYm9yABEAEIAAAKoAOJtxA2MycGEuaW5ncmVkaWVudC52MwAAAAA9Y2JvcqJscmVsYXRpb25zaGlwZ2lucHV0VG9rZGVzY3JpcHRpb25ySW5wdXQgaW5ncmVkaWVudCAwAAAkTWp1bWIAAABHanVtZGMybWEAEQAQgAAAqgA4m3EDdXJuOmMycGE6NTY5Njg2ZjctYjZiMC04ZmQxLTJlYzQtNDkzZWZmYTEyYjYwAAAAGThqdW1iAAAAKGp1bWRjMmNzABEAEIAAAKoAOJtxA2MycGEuc2lnbmF0dXJlAAAAGQhjYm9y0oRZBiiiASYYIYJZAzwwggM4MIICv6ADAgECAhNUw+LJ+Ha8jE5m6TqZMqtESu4SMAoGCCqGSM49BAMDMFExCzAJBgNVBAYTAlVTMRMwEQYDVQQKDApHb29nbGUgTExDMS0wKwYDVQQDDCRHb29nbGUgQzJQQSBNZWRpYSBTZXJ2aWNlcyAxUCBJQ0EgRzMwHhcNMjYwNDE2MTQwMDQ1WhcNMjcwNDExMTQwMDQ0WjBrMQswCQYDVQQGEwJVUzETMBEGA1UEChMKR29vZ2xlIExMQzEcMBoGA1UECxMTR29vZ2xlIFN5c3RlbSA2NzE1NDEpMCcGA1UEAxMgR29vZ2xlIE1lZGlhIFByb2Nlc3NpbmcgU2VydmljZXMg0YP=" class="h-8 w-auto bg-white p-1 rounded" alt="Logo">
+                    <h3 class="font-bold text-lg">Create Service Request - Vellore Finserv</h3>
+                </div>
+                <button onclick="closeNewCaseModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form onsubmit="handleCreateCase(event)" class="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Investor Name</label>
+                        <input type="text" id="new-investor-name" required placeholder="e.g. Ramesh Kumar" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">PAN Number</label>
+                        <input type="text" id="new-pan" required placeholder="ABCDE1234F" class="w-full border border-slate-300 rounded-lg p-2 text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Folio / Client Ref No.</label>
+                        <input type="text" id="new-folio" required placeholder="9102938102" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Assigned RTA</label>
+                        <select id="new-rta" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <option value="CAMS">CAMS</option>
+                            <option value="KFintech">KFintech</option>
+                            <option value="Link Intime">Link Intime</option>
+                            <option value="Bigshare">Bigshare</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Service Category</label>
+                    <select id="new-service-category" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="Transmission of Units">Transmission of Units (Death Claim)</option>
+                        <option value="KYC Update / Unfreeze">KYC Re-validation & Unfreeze</option>
+                        <option value="Bank Mandate Change">Bank Mandate & IFSC Correction</option>
+                        <option value="Dividend / Redemption Re-issue">Unclaimed Dividend / Redemption</option>
+                        <option value="Name / Address Correction">Name or Address Correction</option>
+                        <option value="Demat Consolidation">Folio Merger / Demat Remat</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Case Remarks / Initial Notes</label>
+                    <textarea id="new-remarks" rows="3" placeholder="Describe the service request details and documents received..." class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex justify-end space-x-3">
+                    <button type="button" onclick="closeNewCaseModal()" class="px-4 py-2 border border-slate-300 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-100">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold shadow">Create Case</button>
+                </div>
+            </form>
         </div>
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label">System Role</label>
-          <select id="loginRole" class="form-control">
-            <option value="Staff">Staff Member</option>
-            <option value="Admin">System Administrator</option>
-          </select>
+    </div>
+
+    <!-- Case Details & Update Modal -->
+    <div id="modal-case-detail" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+                <div>
+                    <h3 id="detail-case-id" class="font-bold text-lg">Case Details</h3>
+                    <p id="detail-case-category" class="text-xs text-blue-300"></p>
+                </div>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <p class="text-xs text-slate-500 font-semibold">Investor</p>
+                        <p id="detail-investor" class="font-bold text-slate-800 text-sm">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-semibold">PAN</p>
+                        <p id="detail-pan" class="font-bold text-slate-800 text-sm">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-semibold">Folio Number</p>
+                        <p id="detail-folio" class="font-bold text-slate-800 text-sm">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-semibold">RTA Partner</p>
+                        <p id="detail-rta" class="font-bold text-slate-800 text-sm">-</p>
+                    </div>
+                </div>
+
+                <!-- Update Status Section -->
+                <div class="border border-slate-200 p-4 rounded-xl space-y-3">
+                    <h4 class="font-semibold text-sm text-slate-800">Update Status & SLA</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                            <select id="detail-status-select" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
+                                <option value="Pending RTA">Pending RTA</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Investor Action Required">Investor Action Required</option>
+                                <option value="Resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Next Required Action Date</label>
+                            <input type="date" id="detail-next-date" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <button onclick="saveCaseStatusUpdate()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-500 transition">Save Status Changes</button>
+                </div>
+
+                <!-- Timeline of Logs -->
+                <div>
+                    <h4 class="font-semibold text-sm text-slate-800 mb-3">Audit & Follow-up History Timeline</h4>
+                    <div id="detail-timeline" class="space-y-3 pl-4 border-l-2 border-slate-200">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.75rem;">
-          Authenticate Session
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Header -->
-  <header>
-    <div class="brand-container">
-      <svg class="brand-logo-svg" viewBox="0 0 260 50" xmlns="http://www.w3.org/2000/svg">
-        <rect width="46" height="46" x="2" y="2" rx="10" fill="#2563EB"/>
-        <path d="M14 14 L24 36 L34 14" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <path d="M22 25 L36 25" stroke="#F59E0B" stroke-width="4" stroke-linecap="round"/>
-        <text x="60" y="28" fill="#FFFFFF" font-family="'Segoe UI', sans-serif" font-weight="700" font-size="20">VELLORE</text>
-        <text x="60" y="43" fill="#93C5FD" font-family="'Segoe UI', sans-serif" font-weight="600" font-size="12" letter-spacing="2">FINSERV SERVICE</text>
-      </svg>
     </div>
 
-    <div class="header-actions">
-      <button class="btn btn-outline-light" onclick="openNasConfigModal()">TrueNAS / Storage</button>
-      <button class="btn btn-outline-light" onclick="openSettingsModal()">Reminder Channels</button>
-      <button class="btn btn-primary" onclick="openNewCaseModal()">+ New Case</button>
-      <button class="btn btn-secondary" onclick="handleLogout()" id="logoutBtn" style="display:none;">Logout</button>
-    </div>
-  </header>
+    <script>
+// App State - Defaulting to CLEAN state with 0 pre-filled pending RTA cases
+let rtaRecords = [];
+let auditLogs = [];
+let currentFilter = 'all';
+let searchQuery = '';
+let editingRecordId = null;
 
-  <main>
-    <!-- Auth Status Banner -->
-    <div class="auth-status-bar" id="authStatusBar">
-      <div>
-        <strong id="sessionUserDisplay">Not Authenticated</strong> | Role: <span id="sessionRoleDisplay">None</span>
-      </div>
-      <div>
-        NAS Status: <span id="nasStatusText" style="font-weight:600; color:#0284c7;">Pending Connection URL</span>
-      </div>
-    </div>
-
-    <!-- Metric Dashboard (0 Clean State) -->
-    <div class="dashboard-metrics">
-      <div class="metric-card">
-        <div class="metric-title">Total Cases</div>
-        <div class="metric-value" id="metric-total">0</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title">Pending RTA Action</div>
-        <div class="metric-value" id="metric-pending" style="color: var(--accent);">0</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title">Overdue Follow-ups</div>
-        <div class="metric-value" id="metric-overdue" style="color: var(--danger);">0</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-title">Resolved Cases</div>
-        <div class="metric-value" id="metric-resolved" style="color: var(--success);">0</div>
-      </div>
-    </div>
-
-    <!-- Active Register Table Section -->
-    <div class="section-card">
-      <div class="section-header">
-        <div class="section-title">Active RTA Follow-Up Register</div>
-        <div class="filter-bar">
-          <input type="text" id="searchInput" class="input-search" placeholder="Search investor or folio..." onkeyup="renderTable()">
-          <select id="filterRTA" class="select-filter" onchange="renderTable()">
-            <option value="ALL">All RTAs</option>
-            <option value="CAMS">CAMS</option>
-            <option value="KFintech">KFintech</option>
-            <option value="Link Intime">Link Intime</option>
-            <option value="Bigshare">Bigshare</option>
-          </select>
-          <select id="filterStatus" class="select-filter" onchange="renderTable()">
-            <option value="ALL">All Statuses</option>
-            <option value="Pending">Pending</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Overdue">Overdue</option>
-            <option value="Resolved">Resolved</option>
-          </select>
-          <button class="btn btn-export" onclick="exportData('excel')">📊 Export .XLSX</button>
-          <button class="btn btn-export" style="background-color: #dc2626;" onclick="exportData('pdf')">📄 Export .PDF</button>
-        </div>
-      </div>
-
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>Case ID</th>
-              <th>Investor Name</th>
-              <th>Folio / Client ID</th>
-              <th>RTA Agency</th>
-              <th>Service Category</th>
-              <th>Target Date</th>
-              <th>NAS Document</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="caseTableBody">
-            <!-- Table dynamically populated or rendered clean -->
-          </tbody>
-        </table>
-        <div id="emptyState" class="empty-state">
-          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h10v2H7zm0-4h10v2H7zm0 8h7v2H7z"/></svg>
-          <h3>No Records Found in Database</h3>
-          <p>System initialized cleanly. Log in and click "+ New Case" to create follow-up entries.</p>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- TrueNAS Configuration Modal -->
-  <div class="modal-backdrop" id="nasConfigModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>TrueNAS / FreeNAS Integration Setup</h3>
-        <span style="cursor:pointer;" onclick="closeNasConfigModal()">✕</span>
-      </div>
-      <div class="modal-body">
-        <form onsubmit="handleNasSave(event)">
-          <div class="form-group">
-            <label class="form-label">NAS Server Protocol & Host URL</label>
-            <input type="text" id="nasServerUrl" class="form-control" placeholder="https://nas.vellorefinserv.internal:8443 or smb://192.168.1.100" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Target Storage Pool / Dataset Path</label>
-            <input type="text" id="nasDataset" class="form-control" placeholder="/mnt/tank/rta-documents/clients" required>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">NAS Access Username</label>
-              <input type="text" id="nasUser" class="form-control" placeholder="nas_service_user">
-            </div>
-            <div class="form-group">
-              <label class="form-label">NAS API Key / Password</label>
-              <input type="password" id="nasPass" class="form-control" placeholder="••••••••••••">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeNasConfigModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save NAS Credentials</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Reminder Multi-Channel Settings Modal -->
-  <div class="modal-backdrop" id="settingsModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Follow-Up Reminder Channel Config</h3>
-        <span style="cursor:pointer;" onclick="closeSettingsModal()">✕</span>
-      </div>
-      <div class="modal-body">
-        <form onsubmit="handleSettingsSave(event)">
-          <div class="form-group">
-            <label class="form-label">Active Delivery Channels</label>
-            <div class="checkbox-group">
-              <label class="checkbox-item">
-                <input type="checkbox" id="chkInApp" checked> In-App Dashboard Alerts (Daily Overdue & Today's Follow-ups)
-              </label>
-              <label class="checkbox-item">
-                <input type="checkbox" id="chkEmail" checked> Email Notifications (via Resend / SendGrid API)
-              </label>
-              <label class="checkbox-item">
-                <input type="checkbox" id="chkSMS" checked> SMS Notifications (via Twilio API)
-              </label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email Gateway API Key (Resend / SendGrid)</label>
-            <input type="password" class="form-control" placeholder="re_123456789... or SG....">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Twilio SMS Account SID / Token</label>
-            <input type="password" class="form-control" placeholder="AC...............................">
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Reminder Preferences</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- New Case Registration Modal -->
-  <div class="modal-backdrop" id="caseModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Log New Service Follow-Up</h3>
-        <span style="cursor:pointer;" onclick="closeNewCaseModal()">✕</span>
-      </div>
-      <div class="modal-body">
-        <form id="newCaseForm" onsubmit="handleNewCaseSubmit(event)">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Investor Name</label>
-              <input type="text" id="investorName" class="form-control" placeholder="Investor full name" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Folio / Client ID</label>
-              <input type="text" id="folioNo" class="form-control" placeholder="e.g. 10293847" required>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">RTA Agency</label>
-              <select id="rtaAgency" class="form-control" required>
-                <option value="CAMS">CAMS</option>
-                <option value="KFintech">KFintech</option>
-                <option value="Link Intime">Link Intime</option>
-                <option value="Bigshare">Bigshare</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Service Request Category</label>
-              <select id="serviceCategory" class="form-control" required>
-                <option value="KYC Update / Transmission">KYC Update / Transmission</option>
-                <option value="Dividend Unclaimed">Dividend Unclaimed</option>
-                <option value="Dematerialization">Dematerialization</option>
-                <option value="Name Correction">Name Correction</option>
-                <option value="Address Change">Address Change</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Target Completion Date</label>
-              <input type="date" id="targetDate" class="form-control" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Initial Status</label>
-              <select id="initialStatus" class="form-control" required>
-                <option value="Pending">Pending</option>
-                <option value="In Progress">In Progress</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Attach Document (Stages for TrueNAS Sync)</label>
-            <input type="file" id="caseDocument" class="form-control">
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeNewCaseModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save & Register Case</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <footer>
-    &copy; 2026 Vellore Finserv Service. Internal RTA Follow-Up & Portfolio Servicing Platform.
-  </footer>
-
-  <script>
-    // State Management (Strict Clean State)
-    let casesList = [];
-    let activeUser = null;
-    let nasConfig = { url: '', dataset: '', configured: false };
-
-    // Handle Custom JWT Sign-In
-    function handleCustomJwtAuth(e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const role = document.getElementById('loginRole').value;
-
-      activeUser = { email: email, role: role, authType: 'JWT Custom' };
-      initSession();
+// Initial sample data template kept for optional loading
+const SAMPLE_DATA = [
+    {
+        id: "RTA-" + Math.floor(100000 + Math.random() * 900000),
+        clientName: "Rajesh Kumar",
+        folioNumber: "102938475",
+        folioType: "Mutual Fund Folio",
+        rtaName: "CAMS",
+        serviceType: "Address Change & Bank Mandate",
+        submissionDate: "2026-09-10",
+        expectedDate: "2026-09-20",
+        status: "Pending",
+        followUpCount: 2,
+        lastFollowUp: "2026-09-18",
+        nextFollowUp: "2026-09-23",
+        notes: "Documents submitted to local CAMS office. Awaiting confirmation.",
+        priority: "High"
+    },
+    {
+        id: "RTA-" + Math.floor(100000 + Math.random() * 900000),
+        clientName: "Priya Sharma",
+        folioNumber: "987654321",
+        folioType: "Demat Account",
+        rtaName: "KFintech",
+        serviceType: "Transmission of Units",
+        submissionDate: "2026-09-05",
+        expectedDate: "2026-09-18",
+        status: "In Progress",
+        followUpCount: 3,
+        lastFollowUp: "2026-09-19",
+        nextFollowUp: "2026-09-24",
+        notes: "NOC received from legal heirs. RTA processing verification.",
+        priority: "Medium"
     }
+];
 
-    // Handle Social Login (Emergent Managed)
-    function handleSocialAuth(provider) {
-      activeUser = { email: 'operator@vellorefinserv.com', role: 'Staff', authType: 'Emergent Google Social' };
-      initSession();
+function loadData() {
+    const storedRecords = localStorage.getItem('vellore_finserv_rta_records');
+    if (storedRecords) {
+        rtaRecords = JSON.parse(storedRecords);
+    } else {
+        // DEFAULT IS STRICTLY CLEAN - 0 RECORDS
+        rtaRecords = [];
+        saveData();
     }
-
-    function initSession() {
-      document.getElementById('authOverlay').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = 'inline-flex';
-      document.getElementById('sessionUserDisplay').innerText = `${activeUser.email} (${activeUser.authType})`;
-      document.getElementById('sessionRoleDisplay').innerText = activeUser.role;
-      renderTable();
+    
+    const storedLogs = localStorage.getItem('vellore_finserv_audit_logs');
+    if (storedLogs) {
+        auditLogs = JSON.parse(storedLogs);
+    } else {
+        auditLogs = [{
+            timestamp: new Date().toISOString(),
+            action: "System Initialization",
+            details: "System launched clean with 0 pending records."
+        }];
+        saveAuditLogs();
     }
+}
 
-    function handleLogout() {
-      activeUser = null;
-      document.getElementById('authOverlay').style.display = 'flex';
-      document.getElementById('logoutBtn').style.display = 'none';
+function loadSampleData() {
+    if (confirm("Are you sure you want to load sample demo records? This will merge sample data into your system.")) {
+        rtaRecords = [...rtaRecords, ...JSON.parse(JSON.stringify(SAMPLE_DATA))];
+        saveData();
+        addAuditLog("Sample Data Loaded", "Added demo RTA records to the system.");
+        renderApp();
     }
+}
 
-    // Modal Control Functions
-    function openNasConfigModal() { document.getElementById('nasConfigModal').style.display = 'flex'; }
-    function closeNasConfigModal() { document.getElementById('nasConfigModal').style.display = 'none'; }
-    function openSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; }
-    function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
-    function openNewCaseModal() { document.getElementById('caseModal').style.display = 'flex'; }
-    function closeNewCaseModal() { document.getElementById('caseModal').style.display = 'none'; }
-
-    function handleNasSave(e) {
-      e.preventDefault();
-      nasConfig.url = document.getElementById('nasServerUrl').value;
-      nasConfig.dataset = document.getElementById('nasDataset').value;
-      nasConfig.configured = true;
-
-      document.getElementById('nasStatusText').innerText = `Configured: ${nasConfig.url}`;
-      document.getElementById('nasStatusText').style.color = '#10b981';
-      closeNasConfigModal();
-      alert('TrueNAS / FreeNAS endpoint credentials stored for document staging.');
+function clearAllData() {
+    if (confirm("Are you sure you want to clear ALL RTA records? This will permanently reset the system to clean/empty state.")) {
+        rtaRecords = [];
+        saveData();
+        addAuditLog("System Cleared", "Reset system to clean empty state (0 records).");
+        renderApp();
     }
+}
 
-    function handleSettingsSave(e) {
-      e.preventDefault();
-      closeSettingsModal();
-      alert('Reminder channel preferences updated.');
-    }
+        function renderDashboard() {
+            const total = casesData.length;
+            const pendingRTA = casesData.filter(c => c.status === 'Pending RTA').length;
+            const overdue = casesData.filter(c => new Date(c.nextFollowup) <= new Date() && c.status !== 'Resolved').length;
+            const completed = casesData.filter(c => c.status === 'Resolved').length;
 
-    // Add New Case
-    function handleNewCaseSubmit(e) {
-      e.preventDefault();
-      const docInput = document.getElementById('caseDocument');
-      const docName = docInput.files.length > 0 ? docInput.files[0].name : 'No Attachment';
+            document.getElementById('stat-total-cases').innerText = total;
+            document.getElementById('stat-pending-rta').innerText = pendingRTA;
+            document.getElementById('stat-overdue').innerText = overdue;
+            document.getElementById('stat-completed').innerText = completed;
 
-      const newCase = {
-        caseId: 'VF-' + Math.floor(1000 + Math.random() * 9000),
-        investor: document.getElementById('investorName').value,
-        folio: document.getElementById('folioNo').value,
-        rta: document.getElementById('rtaAgency').value,
-        category: document.getElementById('serviceCategory').value,
-        targetDate: document.getElementById('targetDate').value,
-        status: document.getElementById('initialStatus').value,
-        document: docName
-      };
+            const urgentTable = document.getElementById('dashboard-urgent-table');
+            urgentTable.innerHTML = '';
 
-      casesList.push(newCase);
-      document.getElementById('newCaseForm').reset();
-      closeNewCaseModal();
-      renderTable();
-    }
+            const urgentCases = casesData.filter(c => c.status !== 'Resolved').slice(0, 5);
 
-    function renderTable() {
-      const tbody = document.getElementById('caseTableBody');
-      const emptyState = document.getElementById('emptyState');
-      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-      const selectedRTA = document.getElementById('filterRTA').value;
-      const selectedStatus = document.getElementById('filterStatus').value;
+            if (urgentCases.length === 0) {
+                urgentTable.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-slate-400">No active cases requiring urgent follow-up.</td></tr>`;
+                return;
+            }
 
-      tbody.innerHTML = '';
+            urgentCases.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-slate-800">${c.id}</div>
+                        <div class="text-xs text-slate-500">${c.investor}</div>
+                    </td>
+                    <td class="px-6 py-4 text-slate-700 font-medium">${c.service}</td>
+                    <td class="px-6 py-4"><span class="px-2.5 py-1 bg-slate-100 font-medium text-slate-700 rounded text-xs">${c.rta}</span></td>
+                    <td class="px-6 py-4 text-xs font-semibold ${new Date(c.nextFollowup) <= new Date() ? 'text-rose-600' : 'text-slate-600'}">${c.nextFollowup}</td>
+                    <td class="px-6 py-4">${getStatusBadge(c.status)}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="openCaseDetail('${c.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold">Manage &rarr;</button>
+                    </td>
+                `;
+                urgentTable.appendChild(tr);
+            });
+        }
 
-      const filtered = casesList.filter(item => {
-        const matchesSearch = item.investor.toLowerCase().includes(searchQuery) ||
-                              item.folio.toLowerCase().includes(searchQuery) ||
-                              item.caseId.toLowerCase().includes(searchQuery);
-        const matchesRTA = selectedRTA === 'ALL' || item.rta === selectedRTA;
-        const matchesStatus = selectedStatus === 'ALL' || item.status === selectedStatus;
-        return matchesSearch && matchesRTA && matchesStatus;
-      });
+        function renderCasesTable() {
+            const tableBody = document.getElementById('cases-table-body');
+            const search = document.getElementById('search-cases').value.toLowerCase();
+            const filterRta = document.getElementById('filter-rta').value;
+            const filterStatus = document.getElementById('filter-status').value;
 
-      if (filtered.length === 0) {
-        emptyState.style.display = 'block';
-      } else {
-        emptyState.style.display = 'none';
-        filtered.forEach(item => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td><strong>${item.caseId}</strong></td>
-            <td>${item.investor}</td>
-            <td><code>${item.folio}</code></td>
-            <td>${item.rta}</td>
-            <td>${item.category}</td>
-            <td>${item.targetDate}</td>
-            <td><small>📁 ${item.document}</small></td>
-            <td><span class="badge ${getStatusBadgeClass(item.status)}">${item.status}</span></td>
-            <td>
-              <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" onclick="toggleStatus('${item.caseId}')">Update Status</button>
-            </td>
-          `;
-          tbody.appendChild(row);
-        });
-      }
+            tableBody.innerHTML = '';
 
-      updateMetrics();
-    }
+            const filtered = casesData.filter(c => {
+                const matchesSearch = c.investor.toLowerCase().includes(search) || c.id.toLowerCase().includes(search) || c.pan.toLowerCase().includes(search) || c.folio.includes(search);
+                const matchesRta = filterRta === 'ALL' || c.rta === filterRta;
+                const matchesStatus = filterStatus === 'ALL' || c.status === filterStatus;
+                return matchesSearch && matchesRta && matchesStatus;
+            });
 
-    function updateMetrics() {
-      document.getElementById('metric-total').innerText = casesList.length;
-      document.getElementById('metric-pending').innerText = casesList.filter(c => c.status === 'Pending').length;
-      document.getElementById('metric-overdue').innerText = casesList.filter(c => c.status === 'Overdue').length;
-      document.getElementById('metric-resolved').innerText = casesList.filter(c => c.status === 'Resolved').length;
-    }
+            if(filtered.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-slate-400">No cases matched your criteria.</td></tr>`;
+                return;
+            }
 
-    function getStatusBadgeClass(status) {
-      switch(status) {
-        case 'Pending': return 'badge-pending';
-        case 'In Progress': return 'badge-in-progress';
-        case 'Resolved': return 'badge-resolved';
-        case 'Overdue': return 'badge-overdue';
-        default: return 'badge-pending';
-      }
-    }
+            filtered.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="px-6 py-4">
+                        <div class="font-bold text-blue-600">${c.id}</div>
+                        <div class="text-xs text-slate-400">PAN: ${c.pan}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-semibold text-slate-800">${c.investor}</div>
+                        <div class="text-xs text-slate-500">Folio: ${c.folio}</div>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-slate-700">${c.service}</td>
+                    <td class="px-6 py-4"><span class="px-2.5 py-1 bg-slate-100 font-semibold text-slate-700 rounded text-xs">${c.rta}</span></td>
+                    <td class="px-6 py-4 text-xs text-slate-500">${c.lastUpdated}</td>
+                    <td class="px-6 py-4">${getStatusBadge(c.status)}</td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button onclick="openCaseDetail('${c.id}')" class="px-3 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-xs font-semibold">View Details</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
 
-    function toggleStatus(caseId) {
-      const idx = casesList.findIndex(c => c.caseId === caseId);
-      if (idx !== -1) {
-        const statuses = ['Pending', 'In Progress', 'Overdue', 'Resolved'];
-        let nextIdx = (statuses.indexOf(casesList[idx].status) + 1) % statuses.length;
-        casesList[idx].status = statuses[nextIdx];
-        renderTable();
-      }
-    }
+        function renderFollowupHistory() {
+            const table = document.getElementById('followup-history-table');
+            table.innerHTML = '';
 
-    function exportData(format) {
-      if (casesList.length === 0) {
-        alert('No data available to export. Register a case first.');
-        return;
-      }
-      alert(`Exporting filtered register to .${format.toUpperCase()} format...`);
-    }
-  </script>
-</body>
-</html>
+            let allLogs = [];
+            casesData.forEach(c => {
+                c.logs.forEach(l => {
+                    allLogs.push({ ...l, caseId: c.id });
+                });
+            });
+
+            allLogs.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+            allLogs.forEach(l => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-3 text-xs font-semibold text-slate-500">${l.date}</td>
+                    <td class="px-6 py-3 font-bold text-blue-600 text-xs">${l.caseId}</td>
+                    <td class="px-6 py-3 text-xs"><span class="px-2 py-0.5 bg-slate-100 rounded border border-slate-200">${l.channel}</span></td>
+                    <td class="px-6 py-3 text-xs text-slate-700">${l.notes}</td>
+                    <td class="px-6 py-3 text-xs text-slate-500">${l.nextDate || '-'}</td>
+                `;
+                table.appendChild(tr);
+            });
+        }
+
+        function renderInvestorsGrid() {
+            const grid = document.getElementById('investors-grid');
+            grid.innerHTML = '';
+
+            const investorMap = {};
+            casesData.forEach(c => {
+                if(!investorMap[c.pan]) {
+                    investorMap[c.pan] = { name: c.investor, pan: c.pan, cases: [] };
+                }
+                investorMap[c.pan].cases.push(c);
+            });
+
+            Object.values(investorMap).forEach(inv => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition space-y-3";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">${inv.name}</h3>
+                            <p class="text-xs text-slate-400 font-mono">PAN: ${inv.pan}</p>
+                        </div>
+                        <span class="bg-blue-50 text-blue-600 text-xs font-semibold px-2.5 py-1 rounded-full">${inv.cases.length} Service Case(s)</span>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Associated Cases & Folios</p>
+                        ${inv.cases.map(cs => `
+                            <div class="flex justify-between items-center text-xs p-2 bg-slate-50 rounded">
+                                <span class="font-medium text-slate-700">${cs.service} (${cs.rta})</span>
+                                <span class="font-mono text-slate-500">Folio: ${cs.folio}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function populateCaseDropdowns() {
+            const select = document.getElementById('followup-case-id');
+            select.innerHTML = casesData.map(c => `<option value="${c.id}">${c.id} - ${c.investor} (${c.service})</option>`).join('');
+        }
+
+        function handleCreateCase(e) {
+            e.preventDefault();
+            const newId = `VFS-2026-${100 + casesData.length + 1}`;
+            const newCase = {
+                id: newId,
+                investor: document.getElementById('new-investor-name').value,
+                pan: document.getElementById('new-pan').value.toUpperCase(),
+                folio: document.getElementById('new-folio').value,
+                service: document.getElementById('new-service-category').value,
+                rta: document.getElementById('new-rta').value,
+                status: 'Pending RTA',
+                lastUpdated: new Date().toISOString().split('T')[0],
+                nextFollowup: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+                logs: [{ date: new Date().toISOString().split('T')[0], channel: 'System', notes: document.getElementById('new-remarks').value || 'Case initiated.' }]
+            };
+
+            casesData.unshift(newCase);
+            closeNewCaseModal();
+            renderDashboard();
+            renderCasesTable();
+            populateCaseDropdowns();
+            renderInvestorsGrid();
+            updateCharts();
+            e.target.reset();
+        }
+
+        function handleLogFollowup(e) {
+            e.preventDefault();
+            const caseId = document.getElementById('followup-case-id').value;
+            const channel = document.getElementById('followup-channel').value;
+            const notes = document.getElementById('followup-notes').value;
+            const nextDate = document.getElementById('followup-next-date').value;
+
+            const targetCase = casesData.find(c => c.id === caseId);
+            if(targetCase) {
+                targetCase.lastUpdated = new Date().toISOString().split('T')[0];
+                targetCase.nextFollowup = nextDate;
+                targetCase.logs.unshift({ date: new Date().toISOString().split('T')[0], channel, notes, nextDate });
+            }
+
+            renderDashboard();
+            renderCasesTable();
+            renderFollowupHistory();
+            e.target.reset();
+        }
+
+        function openCaseDetail(caseId) {
+            selectedCaseForDetail = casesData.find(c => c.id === caseId);
+            if(!selectedCaseForDetail) return;
+
+            document.getElementById('detail-case-id').innerText = `${selectedCaseForDetail.id}`;
+            document.getElementById('detail-case-category').innerText = selectedCaseForDetail.service;
+            document.getElementById('detail-investor').innerText = selectedCaseForDetail.investor;
+            document.getElementById('detail-pan').innerText = selectedCaseForDetail.pan;
+            document.getElementById('detail-folio').innerText = selectedCaseForDetail.folio;
+            document.getElementById('detail-rta').innerText = selectedCaseForDetail.rta;
+            document.getElementById('detail-status-select').value = selectedCaseForDetail.status;
+            document.getElementById('detail-next-date').value = selectedCaseForDetail.nextFollowup;
+
+            const timeline = document.getElementById('detail-timeline');
+            timeline.innerHTML = selectedCaseForDetail.logs.map(l => `
+                <div class="relative pl-4 pb-3">
+                    <div class="absolute -left-[21px] top-1 w-3 h-3 rounded-full bg-blue-600"></div>
+                    <div class="text-xs text-slate-400 font-semibold">${l.date} - ${l.channel}</div>
+                    <div class="text-sm text-slate-700 mt-0.5">${l.notes}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('modal-case-detail').classList.remove('hidden');
+        }
+
+        function saveCaseStatusUpdate() {
+            if(!selectedCaseForDetail) return;
+
+            selectedCaseForDetail.status = document.getElementById('detail-status-select').value;
+            selectedCaseForDetail.nextFollowup = document.getElementById('detail-next-date').value;
+            selectedCaseForDetail.lastUpdated = new Date().toISOString().split('T')[0];
+
+            closeDetailModal();
+            renderDashboard();
+            renderCasesTable();
+            updateCharts();
+        }
+
+        function openNewCaseModal() {
+            document.getElementById('modal-new-case').classList.remove('hidden');
+        }
+
+        function closeNewCaseModal() {
+            document.getElementById('modal-new-case').classList.add('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('modal-case-detail').classList.add('hidden');
+        }
+
+        function getStatusBadge(status) {
+            switch(status) {
+                case 'Pending RTA': return `<span class="px-2.5 py-1 bg-amber-50 text-amber-700 font-semibold rounded text-xs border border-amber-200">Pending RTA</span>`;
+                case 'In Progress': return `<span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-semibold rounded text-xs border border-blue-200">In Progress</span>`;
+                case 'Investor Action Required': return `<span class="px-2.5 py-1 bg-purple-50 text-purple-700 font-semibold rounded text-xs border border-purple-200">Investor Action</span>`;
+                case 'Resolved': return `<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold rounded text-xs border border-emerald-200">Resolved</span>`;
+                default: return `<span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded text-xs">${status}</span>`;
+            }
+        }
+
+        function initCharts() {
+            const ctxService = document.getElementById('chart-service-breakdown').getContext('2d');
+            serviceChart = new Chart(ctxService, {
+                type: 'bar',
+                data: getServiceChartData(),
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            const ctxStatus = document.getElementById('chart-status-distribution').getContext('2d');
+            statusChart = new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: getStatusChartData(),
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function updateCharts() {
+            if(serviceChart && statusChart) {
+                serviceChart.data = getServiceChartData();
+                serviceChart.update();
+                statusChart.data = getStatusChartData();
+                statusChart.update();
+            }
+        }
+
+        function getServiceChartData() {
+            const rtaCounts = { 'CAMS': 0, 'KFintech': 0, 'Link Intime': 0, 'Bigshare': 0 };
+            casesData.forEach(c => { if(rtaCounts[c.rta] !== undefined) rtaCounts[c.rta]++; });
+
+            return {
+                labels: Object.keys(rtaCounts),
+                datasets: [{
+                    label: 'Cases per RTA',
+                    data: Object.values(rtaCounts),
+                    backgroundColor: ['#2563eb', '#4f46e5', '#0891b2', '#059669']
+                }]
+            };
+        }
+
+        function getStatusChartData() {
+            const statusCounts = { 'Pending RTA': 0, 'In Progress': 0, 'Investor Action Required': 0, 'Resolved': 0 };
+            casesData.forEach(c => { if(statusCounts[c.status] !== undefined) statusCounts[c.status]++; });
+
+            return {
+                labels: Object.keys(statusCounts),
+                datasets: [{
+                    data: Object.values(statusCounts),
+                    backgroundColor: ['#d97706', '#2563eb', '#9333ea', '#059669']
+                }]
+            };
+        }
+    </script>
+
+<!-- Header Controls HTML Example modification to add Sample Data load / Clear option -->
